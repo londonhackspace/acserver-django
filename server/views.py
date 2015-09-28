@@ -34,7 +34,7 @@ def card(request, tool_id, card_id):
   try:
     c = Card.objects.get(card_id=card_id)
   except ObjectDoesNotExist, e:
-    return HttpResponse('0', content_type='text/plain')
+    return HttpResponse('-1', content_type='text/plain')
 
   try:
     perm = c.user.permissions_set.get(tool=t).permission
