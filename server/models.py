@@ -8,19 +8,22 @@ class User(models.Model):
   # the id field is created automatticly by django
   # we use the id's from the carddb tho
   # might want to disable auto_increment?
-  name = models.CharField(max_length=50)
+  name = models.CharField(max_length=50, unique=True)
   subscribed = models.BooleanField(default=False)
   
   def __unicode__(self):
     return u"%d %s: %s" % (self.id, self.name, str(self.subscribed))
+
+  class Meta:
+    unique_together = (("id", "name"),)
 
 # tool
 class Tool(models.Model):
   name = models.TextField()
   status = models.PositiveIntegerField(default=0, choices = ((1, "Operational"), (0, "Out of service")))
   status_message = models.TextField()
-  inuse = models.BooleanField(default=False, choices = ((True, "yes"),(False, "no")))
-  inuseby = models.ForeignKey(User, null=True, default=None)
+  inuse = models.BooleanField(default=False, choices = ((True, "yes"),(False, "no")), editable=False)
+  inuseby = models.ForeignKey(User, null=True, default=None, editable=False)
   # shared secret
 
   def __unicode__(self):
@@ -36,7 +39,7 @@ class Card(models.Model):
   # foreigen key to user.id
   user = models.ForeignKey(User)
   # actually only need 14, the uid is stored as hex.
-  card_id = models.CharField(max_length=15, db_index=True)
+  card_id = models.CharField(max_length=15, db_index=True, unique=True)
 
   def __unicode__(self):
     return u"%d %s" % (self.id, self.card_id)
@@ -49,3 +52,5 @@ class Permissions(models.Model):
   def __unicode__(self):
     return u"%s is a %s for %s" % (self.user.name, self.get_permission_display(), self.tool.name)
 
+  class Meta:
+    unique_together = (("user", "tool"),)
