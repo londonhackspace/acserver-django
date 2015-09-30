@@ -41,6 +41,10 @@ def card(request, tool_id, card_id):
   except ObjectDoesNotExist, e:
     perm = 0
 
+  if not c.user.subscribed:
+    # log unsubscribed user tried to use tool.
+    perm = -1
+
   return HttpResponse(str(perm), content_type='text/plain')
 
 @csrf_exempt

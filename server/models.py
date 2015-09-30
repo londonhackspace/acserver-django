@@ -1,7 +1,5 @@
 from django.db import models
-
-# Create your models here.
-
+from django.utils.html import format_html
 
 # user
 class User(models.Model):
@@ -9,25 +7,38 @@ class User(models.Model):
   # we use the id's from the carddb tho
   # might want to disable auto_increment?
   name = models.CharField(max_length=50, unique=True)
-  subscribed = models.BooleanField(default=False)
+  subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
   
   def __unicode__(self):
-    return u"%d %s: %s" % (self.id, self.name, str(self.subscribed))
+    return u"%s : '%s' %s" % (self.lhsid(), self.name, self.get_subscribed_display(),)
+
+  def lhsid(self):
+    if self.id == None:
+      return u"HSXXXXX"
+    return u"HS%05d" % (self.id)
+  lhsid.admin_order_field = 'id'
+
+  def username_and_profile(u):
+    return u'<a href="https://london.hackspace.org.uk/members/profile.php?id=%d">%s</a>' % (u.id, format_html(u.name))
+  username_and_profile.short_description = 'Name'
+  username_and_profile.allow_tags = True
+  username_and_profile.admin_order_field = 'name'
 
   class Meta:
     unique_together = (("id", "name"),)
+    verbose_name = 'ACNode User'
 
 # tool
 class Tool(models.Model):
   name = models.TextField()
   status = models.PositiveIntegerField(default=0, choices = ((1, "Operational"), (0, "Out of service")))
   status_message = models.TextField()
-  inuse = models.BooleanField(default=False, choices = ((True, "yes"),(False, "no")), editable=False)
-  inuseby = models.ForeignKey(User, null=True, default=None, editable=False)
+  inuse = models.BooleanField(default=False, choices = ((True, "yes"),(False, "no")))
+  inuseby = models.ForeignKey(User, null=True, default=None)
   # shared secret
 
   def __unicode__(self):
-    return u"%d %s: %d - %s" % (self.id, self.name, self.status, self.status_message)
+    return u"%s (%d)" % (self.name, self.id)
 
 class ToolUseTime(models.Model):
   tool = models.ForeignKey(Tool)
@@ -48,6 +59,8 @@ class Permissions(models.Model):
   user = models.ForeignKey(User)
   tool = models.ForeignKey(Tool)
   permission = models.PositiveIntegerField(choices = ((1, "user"),(2, "maintainer")))
+  # added by
+  # date
 
   def __unicode__(self):
     return u"%s is a %s for %s" % (self.user.name, self.get_permission_display(), self.tool.name)
