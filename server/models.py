@@ -59,11 +59,11 @@ class Permissions(models.Model):
   user = models.ForeignKey(User)
   tool = models.ForeignKey(Tool)
   permission = models.PositiveIntegerField(choices = ((1, "user"),(2, "maintainer")))
-  # added by
-  # date
+  addedby = models.ForeignKey(User, related_name="addedpermissions")
+  date = models.DateTimeField(auto_now=True, auto_now_add=True)
 
   def __unicode__(self):
-    return u"%s is a %s for %s" % (self.user.name, self.get_permission_display(), self.tool.name)
+    return u"%s is a %s for %s, added by <%s> on %s" % (self.user.name, self.get_permission_display(), self.tool.name, self.addedby, self.date)
 
   class Meta:
     unique_together = (("user", "tool"),)

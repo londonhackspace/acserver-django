@@ -65,15 +65,31 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
   except ObjectDoesNotExist, e:
     return HttpResponse('0', content_type='text/plain')
 
-  bcp = bc.user.permissions_set.get(tool=t).get_permission_display()
-  if bcp != 'maintainer':
+  try:
+    bcp = bc.user.permissions_set.get(tool=t).get_permission_display()
+    if bcp != 'maintainer':
+      return HttpResponse(str(0), content_type='text/plain')
+  except ObjectDoesNotExist, e:
     return HttpResponse(str(0), content_type='text/plain')
 
   if not tc.user.subscribed:
     # needs to be subscribed to be a user
     return HttpResponse(str(0), content_type='text/plain')
-  
-  np = Permissions(user=tc.user, permission=1, tool=t)
+
+  if not bc.user.subscribed:
+    # needs to be subscribed to be a maintainer
+    return HttpResponse(str(0), content_type='text/plain')
+
+  try:
+    # does the permission already exist?
+    p = Permissions.objects.filter(user=tc.user, tool=t)
+    # if so just report success.
+    if len(p) > 0:
+      return HttpResponse(str(1), content_type='text/plain')
+  except ObjectDoesNotExist, e:
+    pass
+
+  np = Permissions(user=tc.user, permission=1, tool=t, addedby=bc.user)
   np.save()
 
   return HttpResponse(str(1), content_type='text/plain')

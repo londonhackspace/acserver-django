@@ -32,7 +32,7 @@ class CardAdmin(admin.ModelAdmin):
 
 class PermissionsAdmin(admin.ModelAdmin):
   fields = (('tool', 'user', 'permission'),)
-  list_display = ('tool', username_and_profile, 'permission')
+  list_display = ('tool', username_and_profile, 'permission', 'addedby', 'date')
   list_filter = ('tool', 'permission')
 
 admin.site.register(Tool, ToolAdmin)
