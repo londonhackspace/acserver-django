@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.utils.html import format_html
 
@@ -10,7 +12,7 @@ class User(models.Model):
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
   
   def __unicode__(self):
-    return u"%s : '%s' %s" % (self.lhsid(), self.name, self.get_subscribed_display(),)
+    return u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
 
   def lhsid(self):
     if self.id == None:
@@ -44,6 +46,9 @@ class ToolUseTime(models.Model):
   tool = models.ForeignKey(Tool)
   inuseby = models.ForeignKey(User)
   duration = models.PositiveIntegerField()
+
+  def __unicode__(self):
+    return u"%s used by %s for %s" % (self.tool, self.inuseby, str(datetime.timedelta(seconds=self.duration)))
 
 # card
 class Card(models.Model):
