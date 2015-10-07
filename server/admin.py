@@ -35,6 +35,12 @@ class PermissionsAdmin(admin.ModelAdmin):
   list_display = ('tool', username_and_profile, 'permission', 'addedby', 'date')
   list_filter = ('tool', 'permission')
 
+  def save_model(self, request, obj, form, change):
+    # this assumes that the user id's of django users
+    # matches the id's of hackspace users.
+    obj.addedby = User.objects.get(id=request.user.id)
+    obj.save()
+
 admin.site.register(Tool, ToolAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(Card, CardAdmin)
