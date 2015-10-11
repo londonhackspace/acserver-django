@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.decorators import available_attrs
 
 
-from models import Tool, Card, User, Permissions, ToolUseTime
+from models import Tool, Card, User, Permissions, ToolUseTime, Log
 
 import json, logging
 from functools import wraps
@@ -117,6 +117,13 @@ def settoolstatus(request, tool_id, status, card_id):
 
   t.status = status
   t.save()
+
+  if status == 0:
+    l = Log(tool=t, user=c.user, message="Tool taken out of service")
+    l.save()
+  elif status == 1:
+    l = Log(tool=t, user=c.user, message="Tool put into service")
+    l.save()
   
   return HttpResponse(str(1), content_type='text/plain')
 
@@ -134,12 +141,18 @@ def settooluse(request, tool_id, status, card_id):
     return HttpResponse('0', content_type='text/plain')
   
   status = int(status)
+  message = None
   if status == 1:
     t.inuseby = c.user
+    message = "Access Started"
   else:
     t.inuseby = None
+    message = "Access Finished"
   t.inuse = status
   t.save()
+
+  l = Log(tool=t, user=c.user, message=message)
+  l.save()
 
   return HttpResponse('1', content_type='text/plain')
 
@@ -170,6 +183,9 @@ def settoolusetime(request, tool_id, card_id, duration):
 
   tut = ToolUseTime(tool=t, inuseby=c.user, duration=int(duration))
   tut.save()
+
+  l = Log(tool=t, user=c.user, message="Tool used for %d seconds" % (int(duration),))
+  l.save()
   
   return HttpResponse('1', content_type='text/plain')
 

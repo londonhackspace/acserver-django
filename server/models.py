@@ -72,3 +72,12 @@ class Permissions(models.Model):
 
   class Meta:
     unique_together = (("user", "tool"),)
+
+class Log(models.Model):
+  tool = models.ForeignKey(Tool)
+  user = models.ForeignKey(User)
+  date = models.DateTimeField(auto_now=True, auto_now_add=True)
+  message = models.TextField()
+
+  def __unicode__(self):
+    return u"at %s %s on %s : message: %s" % (self.date, self.user.name, self.tool.name, self.message)

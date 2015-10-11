@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from models import Tool, User, Card, Permissions
+from models import Tool, User, Card, Permissions, Log
 
 def username_and_profile(u):
-  if u.__class__ == Permissions or u.__class__ == Card:
+  if u.__class__ == Permissions or u.__class__ == Card or u.__class__ == Log:
     u = u.user
   return u'<a href="https://london.hackspace.org.uk/members/profile.php?id=%d">%s</a>' % (u.id, format_html(u.name))
 username_and_profile.short_description = 'Name'
@@ -41,8 +41,16 @@ class PermissionsAdmin(admin.ModelAdmin):
     obj.addedby = User.objects.get(id=request.user.id)
     obj.save()
 
+class LogAdmin(admin.ModelAdmin):
+  fields = (('tool', 'user', 'date', 'message'),)
+  list_display = ('tool', username_and_profile, 'date', 'message')
+  list_filter = ('tool',)
+  readonly_fields = ('tool', 'user', 'date', 'message')
+  search_fields = ('user',)
+
 admin.site.register(Tool, ToolAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(Card, CardAdmin)
 admin.site.register(Permissions, PermissionsAdmin)
+admin.site.register(Log, LogAdmin)
 
