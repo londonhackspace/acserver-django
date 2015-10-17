@@ -37,7 +37,8 @@ class Tool(models.Model):
   status_message = models.TextField()
   inuse = models.BooleanField(default=False, choices = ((True, "yes"),(False, "no")))
   inuseby = models.ForeignKey(User, null=True, default=None)
-  # shared secret
+  # can be null cos some acnodes may be running old code.
+  secret = models.CharField(max_length=8, null=True)
 
   def __unicode__(self):
     return u"%s (%d)" % (self.name, self.id)

@@ -14,6 +14,46 @@ from functools import wraps
 
 logger = logging.getLogger('django.request')
 
+def check_secret(func):
+  def _decorator(func):
+    @wraps(func, assigned=available_attrs(func))
+    def inner(request, *args, **kwargs):
+      try:
+        tool = Tool.objects.get(pk=kwargs['tool_id'])
+      except ObjectDoesNotExist, e:
+        return func(request, *args, **kwargs)
+      if tool.secret != None:
+        if 'HTTP_X_AC_KEY' not in request.META:
+          # the tool has a secret, but it's wasn't sent
+          # so just fail it.
+          logger.critical('Missing secret key for tool %d // %s from %s', tool.id, request.path, request.META['REMOTE_ADDR'],
+                    extra={
+                        'status_code': 200,
+                        'request': request
+                    }
+                )
+          return HttpResponse('0', content_type='text/plain')
+
+        if tool.secret != request.META['HTTP_X_AC_KEY']:
+          logger.critical('Wrong secret key for tool %d // %s from %s', tool.id, request.path, request.META['REMOTE_ADDR'],
+                    extra={
+                        'status_code': 200,
+                        'request': request
+                    }
+                )
+          return HttpResponse('0', content_type='text/plain')
+      else:
+        if 'HTTP_X_AC_KEY' in request.META:
+          logger.warning('tool %d sent a secret key, but we don\'t have one for it! // %s from %s', tool.id, request.path, request.META['REMOTE_ADDR'],
+                    extra={
+                        'status_code': 200,
+                        'request': request
+                    }
+                )
+      return func(request, *args, **kwargs)
+    return inner
+  return _decorator(func)
+
 @require_GET
 def status(request, tool_id):
   try:
@@ -23,6 +63,7 @@ def status(request, tool_id):
 
   return HttpResponse(str(t.status), content_type='text/plain')
 
+@check_secret
 @require_GET
 def card(request, tool_id, card_id):
 
@@ -47,6 +88,7 @@ def card(request, tool_id, card_id):
 
   return HttpResponse(str(perm), content_type='text/plain')
 
+@check_secret
 @csrf_exempt
 @require_POST
 def granttocard(request, tool_id, to_cardid, by_cardid):
@@ -94,6 +136,7 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
 
   return HttpResponse(str(1), content_type='text/plain')
 
+@check_secret
 @csrf_exempt
 @require_POST
 def settoolstatus(request, tool_id, status, card_id):
@@ -127,6 +170,7 @@ def settoolstatus(request, tool_id, status, card_id):
   
   return HttpResponse(str(1), content_type='text/plain')
 
+@check_secret
 @csrf_exempt
 @require_POST
 def settooluse(request, tool_id, status, card_id):
@@ -156,6 +200,7 @@ def settooluse(request, tool_id, status, card_id):
 
   return HttpResponse('1', content_type='text/plain')
 
+# used by other things?
 @require_GET
 def isinuse(request, tool_id):
   try:
@@ -168,6 +213,7 @@ def isinuse(request, tool_id):
   else:
     return HttpResponse('no', content_type='text/plain')
 
+@check_secret
 @csrf_exempt
 @require_POST
 def settoolusetime(request, tool_id, card_id, duration):

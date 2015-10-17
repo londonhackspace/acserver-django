@@ -13,7 +13,7 @@ username_and_profile.admin_order_field = 'user'
 
 class ToolAdmin(admin.ModelAdmin):
   readonly_fields = ('inuse', 'inuseby')
-  list_display = ('id', 'name', 'status', 'status_message', 'inuse', 'inuseby')
+  list_display = ('id', 'name', 'status', 'status_message', 'secret', 'inuse', 'inuseby')
   search_fields = ('name','id')
   list_editable = ('status', 'status_message')
   list_filter = ('status',)
