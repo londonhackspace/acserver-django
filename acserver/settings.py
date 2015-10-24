@@ -97,15 +97,20 @@ LOGGING = {
             'filename': 'mysite.log',
             'formatter': 'verbose'
         },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+        },
     },
     'loggers': {
         'django': {
-            'handlers':['file'],
+            'handlers':['console', 'file'],
             'propagate': True,
             'level':'INFO',
         },
         'acserver': {
-            'handlers': ['file'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
         },
     }
@@ -118,3 +123,8 @@ STATIC_URL = '/static/'
 
 # ACServer specific things
 ACS_API_KEY = 'KEY GOES HERE'
+
+try:
+    from acserver.local_settings import *
+except:
+    pass
