@@ -1,4 +1,8 @@
 
+Dependencies:
+
+apt-get install python-django python-django-auth-ldap python-sqlite python-psycopg2
+
 To setup the db run:
 
 ./manage.py syncdb
