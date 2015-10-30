@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from server.models import Tool, Permissions, Log, User
 
-import json, os, sys, datetime
+import json, os, sys, datetime, pytz
 
 class Command(BaseCommand):
   args = '<path/to/dump.json> [toolid]'
@@ -46,6 +46,11 @@ class Command(BaseCommand):
 
     # format for importing dates.
     format = "%Y-%m-%dT%H:%M:%S"
+    # the timestamps comes from a mysql
+    # timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    # column, which uses the system timezone, which on babbage and the acserver is:
+    # TZ='Europe/London'
+    gmt = pytz.timezone('Europe/London')
 
     for p in perms:
       # {u'last_used': None, u'user_id': 38, u'tool_id': 1, u'permission': 2, u'added_by_user_id': None, u'added_on': u'2013-05-05T02:38:47'}
@@ -66,7 +71,8 @@ class Command(BaseCommand):
           print p
           ep.permission = int(p['permission'])
           ep.addedby = User.objects.get(pk=added_by)
-          ep.date = datetime.datetime.strptime(p['added_on'], format)
+          date = datetime.datetime.strptime(p['added_on'], format)
+          ep.date = gmt.localize(date)
           ep.save()
         continue
       except ObjectDoesNotExist, e:
@@ -81,12 +87,14 @@ class Command(BaseCommand):
           added_by = 1
         else:
           added_by = p['added_by_user_id']
+        date = datetime.datetime.strptime(p['added_on'], format)
+        date = gmt.localize(date)
         perm = Permissions(
           user=User.objects.get(pk=p['user_id']),
           tool=Tool.objects.get(pk=p['tool_id']),
           permission = int(p['permission']),
           addedby = User.objects.get(pk=added_by),
-          date = datetime.datetime.strptime(p['added_on'], format)
+          date = date
           )
         perm.save()
       except ObjectDoesNotExist, e:
@@ -101,8 +109,10 @@ class Command(BaseCommand):
           continue
       # {u'tool_id': 1, u'logged_at': u'2013-05-16T19:57:59', u'user_id': 38, u'logged_event': u'Access Finished', u'time': 0}
       try:
+        date = datetime.datetime.strptime(l['logged_at'], format)
+        date = gmt.localize(date)
         l = Log(tool=Tool.objects.get(pk=l['tool_id']), user=User.objects.get(pk=l['user_id']),
-                date=datetime.datetime.strptime(l['logged_at'], format), 
+                date=date,
                 message=l['logged_event'], time=l['time'])
         l.save()
       except ObjectDoesNotExist, e:
