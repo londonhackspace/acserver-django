@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import DataError
 
 from server.models import User, Card
 
@@ -37,10 +38,21 @@ class Command(BaseCommand):
         for c in u['cards']:
           # add new cards
           if c not in [x.card_id for x in ecs]:
-            eu.card_set.add(Card(card_id=c))
+            try:
+              eu.card_set.add(Card(card_id=c))
+            except DataError as e:
+              print "error adding new card for %s, card too long? %s" % (eu, c)
+              print u
+              print e
         eu.save()
       else:
         nu = User(id=int(u['id']), name=u['nick'], subscribed=u['subscribed'])
+        try:
+          nu.save()
+        except Exception as e:
+          print "blah."
+          print e
+          print u
         for c in u['cards']:
           try:
             # the card already exist?
@@ -59,12 +71,13 @@ class Command(BaseCommand):
                 print "panic: card id %s is in use by 2 users: %s and %s" % (c, ec.user, nu)
           except ObjectDoesNotExist:
             pass
+          except Exception as e:
+            print u
+            print "lol wtf", e
           try:
             nu.card_set.add(Card(card_id=c))
           except Exception as e:
             print e
-            print dir(e)
-            print str(e)
             print u
             print nu
         try:

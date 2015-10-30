@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from server.models import Tool, Permissions, Log, User
 
@@ -83,12 +84,19 @@ class Command(BaseCommand):
         if p['added_by_user_id'] == None:
           # no user added this permission :/
           # lets just use user 1 (Russ), it's as good as any
-          print "Warning: no added_by for permission %s" % (str(p))
+          print "Warning: no added_by for permission %s, using user id 1" % (str(p))
+          added_by = 1
+        elif p['added_by_user_id'] == 0:
+          print "Warning: added_by for permission %s was 0, using user id 1" % (str(p))
           added_by = 1
         else:
           added_by = p['added_by_user_id']
-        date = datetime.datetime.strptime(p['added_on'], format)
-        date = gmt.localize(date)
+        if not p['added_on']:
+          date = timezone.now()
+        else:
+          date = datetime.datetime.strptime(p['added_on'], format)
+          date = gmt.localize(date)
+
         perm = Permissions(
           user=User.objects.get(pk=p['user_id']),
           tool=Tool.objects.get(pk=p['tool_id']),

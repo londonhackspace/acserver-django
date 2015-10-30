@@ -12,7 +12,7 @@ class User(models.Model):
   # ifnull(u.nickname, u.full_name) nick,
   #
   # which can lead to duplicate names...
-  name = models.CharField(max_length=50)
+  name = models.TextField()
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
   
   def __unicode__(self):
@@ -45,7 +45,7 @@ class Tool(models.Model):
   secret = models.CharField(max_length=8, null=True)
 
   def __unicode__(self):
-    return u"%s (%d)" % (self.name, self.id)
+    return u"%s (id: %d)" % (self.name, self.id)
 
 class ToolUseTime(models.Model):
   tool = models.ForeignKey(Tool)
