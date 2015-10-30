@@ -230,7 +230,7 @@ def settoolusetime(request, tool_id, card_id, duration):
   tut = ToolUseTime(tool=t, inuseby=c.user, duration=int(duration))
   tut.save()
 
-  l = Log(tool=t, user=c.user, message="Tool used for %d seconds" % (int(duration),))
+  l = Log(tool=t, user=c.user, message="Tool used for %d seconds" % (int(duration),), time=int(duration))
   l.save()
   
   return HttpResponse('1', content_type='text/plain')

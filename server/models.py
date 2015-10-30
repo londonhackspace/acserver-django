@@ -1,14 +1,18 @@
-import datetime
-
 from django.db import models
 from django.utils.html import format_html
+from django.utils import timezone
 
 # user
 class User(models.Model):
   # the id field is created automatticly by django
   # we use the id's from the carddb tho
   # might want to disable auto_increment?
-  name = models.CharField(max_length=50, unique=True)
+  # I'd like the name to be unique=True, but the carddb export does:
+  #
+  # ifnull(u.nickname, u.full_name) nick,
+  #
+  # which can lead to duplicate names...
+  name = models.CharField(max_length=50)
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
   
   def __unicode__(self):
@@ -66,10 +70,20 @@ class Permissions(models.Model):
   tool = models.ForeignKey(Tool)
   permission = models.PositiveIntegerField(choices = ((1, "user"),(2, "maintainer")))
   addedby = models.ForeignKey(User, related_name="addedpermissions")
-  date = models.DateTimeField(auto_now=True, auto_now_add=True)
+  date = models.DateTimeField()
 
   def __unicode__(self):
     return u"%s is a %s for %s, added by <%s> on %s" % (self.user.name, self.get_permission_display(), self.tool.name, self.addedby, self.date)
+
+  def save(self, *args, **kwargs):
+    # if we don't have a date field, set it to the
+    # current date and time.
+    if not self.date:
+      self.date = timezone.now()
+    if self.id:
+      # object already exists, so update the datestamp on change...
+      self.date = timezone.now()
+    return super(Permissions, self).save(*args, **kwargs)
 
   class Meta:
     unique_together = (("user", "tool"),)
@@ -77,8 +91,16 @@ class Permissions(models.Model):
 class Log(models.Model):
   tool = models.ForeignKey(Tool)
   user = models.ForeignKey(User)
-  date = models.DateTimeField(auto_now=True, auto_now_add=True)
+  date = models.DateTimeField()
   message = models.TextField()
+  time = models.PositiveIntegerField(default=0)
 
   def __unicode__(self):
     return u"at %s %s on %s : message: %s" % (self.date, self.user.name, self.tool.name, self.message)
+
+  def save(self, *args, **kwargs):
+    # if we don't have a date field, set it to the
+    # current date and time.
+    if not self.date:
+      self.date = timezone.now()
+    return super(Log, self).save(*args, **kwargs)

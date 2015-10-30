@@ -42,6 +42,35 @@ class Command(BaseCommand):
       else:
         nu = User(id=int(u['id']), name=u['nick'], subscribed=u['subscribed'])
         for c in u['cards']:
-          nu.card_set.add(Card(card_id=c))
-        nu.save()
+          try:
+            # the card already exist?
+            ec = Card.objects.get(card_id=c)
+            # bother, it does.
+            # Which of the 2 users is subscribed?
+            if not u['subscribed']:
+              print "skipping card %s, it's already in the db and this user is not subscribed" % (c,)
+              continue
+            else:
+              # darn, maybe the other user is not subscribed?
+              if not ec.user.subscribed:
+                print "card %s is already in the db for %s, but they are not subscribed so i'm deleting the card" % (c, ec.user)
+                ec.delete()
+              else:
+                print "panic: card id %s is in use by 2 users: %s and %s" % (c, ec.user, nu)
+          except ObjectDoesNotExist:
+            pass
+          try:
+            nu.card_set.add(Card(card_id=c))
+          except Exception as e:
+            print e
+            print dir(e)
+            print str(e)
+            print u
+            print nu
+        try:
+          nu.save()
+        except Exception as e:
+          print e
+          print u
+          print nu
     fh.close()
