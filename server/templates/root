@@ -1,0 +1,14 @@
+{% extends "base" %}
+
+{% block title %} Hello this is an acserver {% endblock %}
+
+{% block content %}
+
+<H1>This is London hackspaces ACServer</H1>
+
+<p>If you are an acnode maintainer or admin you might want to go <a
+href="https://{{ view.request.META.SERVER_NAME }}/admin/">here</a>, Otherwise you might want the Lhs <a
+href="https://london.hackspace.org.uk/">main website</a>, or our 
+<a href="https://wiki.london.hackspace.org.uk/view/London_Hackspace">wiki</a>.</p>
+
+{% endblock %}

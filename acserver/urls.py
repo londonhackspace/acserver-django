@@ -1,11 +1,13 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
+from django.views.generic import TemplateView
 
 urlpatterns = patterns('',
     # Examples:
     # url(r'^$', 'acserver.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
+    url(r'^$', TemplateView.as_view(template_name="root")),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^(?P<tool_id>\d+)/status/$', 'server.views.status'),
 #/1/card/12345678

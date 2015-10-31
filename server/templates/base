@@ -1,0 +1,14 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<HTML lang=en>
+<HEAD>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+	<LINK REL="StyleSheet" HREF="/media/base.css" TYPE="text/css">
+	{% block head %}{% endblock %}
+	<TITLE>{% block title %} Hello World! {% endblock %}</TITLE>
+</HEAD>
+<BODY>
+
+{% block content %} Insert content here {% endblock %}
+
+</BODY>
+</HTML>
