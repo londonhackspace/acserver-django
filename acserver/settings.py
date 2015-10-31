@@ -128,5 +128,5 @@ ACNODE_IP_RANGE = '0.0.0.0/0'
 
 try:
     from acserver.local_settings import *
-except:
+except ImportError as e:
     pass
