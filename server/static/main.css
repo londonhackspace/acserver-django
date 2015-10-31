@@ -1,0 +1,53 @@
+BODY {
+	font-family: helvetica,ariel,homerton,sans-serif;
+	background-color: #f6f6f6;
+	color: #000;
+}
+
+P {margin-left: 2em;}
+
+DIV.footer {font-size: smaller;}
+DIV.header {font-size: smaller;}
+
+hr {
+	border: none;
+	border-bottom-style: dashed;
+	border-bottom-width: thin;
+	border-color: #bbb;
+}
+
+DIV.mainbit {
+	position: relative;
+	padding: 3px 3px 3px 3px;
+}
+
+H1, H2, H3, H4 {
+	color: #222;
+	font-family: Verdana, Helvetica, sans-serif;
+	font-size: smaller;
+}
+
+DIV.endnote P {text-indent: -1em; color: #333333; background-color: inherit;}
+
+a.reference img {
+	border-bottom-width: 0px;
+	border-top-width: 0px;	
+	border-left-width: 0px;
+	border-right-width: 0px;	
+}
+
+p.error label {
+	color: red;
+}
+
+p.error input[type="text"], p.error textarea {
+	border: 2px solid red;
+	border-radius: 5px;
+}
+
+
+input[type="text"], textarea {
+	border-radius: 5px;
+	padding: 2px;
+	border: 1px solid #CCCCCC;
+}
