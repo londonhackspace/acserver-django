@@ -1,7 +1,7 @@
 
 Dependencies:
 
-apt-get install python-django python-django-auth-ldap python-sqlite python-psycopg2
+apt-get install python-django python-django-auth-ldap python-sqlite python-psycopg2 python-netaddr
 
 To setup the db run:
 

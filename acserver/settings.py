@@ -123,6 +123,8 @@ STATIC_URL = '/static/'
 
 # ACServer specific things
 ACS_API_KEY = 'KEY GOES HERE'
+# only things in this ip range can access the acnode api things.
+ACNODE_IP_RANGE = '0.0.0.0/0'
 
 try:
     from acserver.local_settings import *

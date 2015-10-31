@@ -10,6 +10,7 @@ from django.utils.decorators import available_attrs
 from models import Tool, Card, User, Permissions, ToolUseTime, Log
 
 import json, logging
+from netaddr import IPAddress, IPNetwork
 from functools import wraps
 
 logger = logging.getLogger('django.request')
@@ -54,6 +55,22 @@ def check_secret(func):
     return inner
   return _decorator(func)
 
+def check_ip(func):
+  def _decorator(func):
+    @wraps(func, assigned=available_attrs(func))
+    def inner(request, *args, **kwargs):
+      if IPAddress(request.META['REMOTE_ADDR']) not in IPNetwork(settings.ACNODE_IP_RANGE):
+        logger.warning('invalid access attempt from %s', request.META['REMOTE_ADDR'],
+                    extra={
+                        'status_code': 403,
+                        'request': request
+                    }
+              )
+        return HttpResponse('IP forbidden\n', status=403, content_type='text/plain')
+      return func(request, *args, **kwargs)
+    return inner
+  return _decorator(func)
+
 @require_GET
 def status(request, tool_id):
   try:
@@ -64,6 +81,7 @@ def status(request, tool_id):
   return HttpResponse(str(t.status), content_type='text/plain')
 
 @check_secret
+@check_ip
 @require_GET
 def card(request, tool_id, card_id):
 
@@ -89,6 +107,7 @@ def card(request, tool_id, card_id):
   return HttpResponse(str(perm), content_type='text/plain')
 
 @check_secret
+@check_ip
 @csrf_exempt
 @require_POST
 def granttocard(request, tool_id, to_cardid, by_cardid):
@@ -137,6 +156,7 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
   return HttpResponse(str(1), content_type='text/plain')
 
 @check_secret
+@check_ip
 @csrf_exempt
 @require_POST
 def settoolstatus(request, tool_id, status, card_id):
@@ -171,6 +191,7 @@ def settoolstatus(request, tool_id, status, card_id):
   return HttpResponse(str(1), content_type='text/plain')
 
 @check_secret
+@check_ip
 @csrf_exempt
 @require_POST
 def settooluse(request, tool_id, status, card_id):
@@ -214,6 +235,7 @@ def isinuse(request, tool_id):
     return HttpResponse('no', content_type='text/plain')
 
 @check_secret
+@check_ip
 @csrf_exempt
 @require_POST
 def settoolusetime(request, tool_id, card_id, duration):
