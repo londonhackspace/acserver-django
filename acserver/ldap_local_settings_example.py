@@ -65,3 +65,33 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
 AUTH_LDAP_PROFILE_FLAGS_BY_GROUP = {
     "is_admin": ["cn=Admins," + GROUP_BASE]
 }
+
+#
+# For TLS:
+#
+#AUTH_LDAP_GLOBAL_OPTIONS = {
+#    ldap.OPT_X_TLS_REQUIRE_CERT: True,
+#    ldap.OPT_X_TLS_DEMAND: True,
+#}
+
+# You will also need to set:
+#
+# SECRET_KEY
+# probably a different DATABASE (https://docs.djangoproject.com/en/1.7/ref/settings/#databases)
+#
+# STATIC_ROOT (and run ./manage.py collectstatic to populate it)
+# ALLOWED_HOSTS to the FQDN of your website
+# LOGGING to somewhere the webserver can log to
+# DEBUG = False
+# CSRF_COOKIE_SECURE = True
+# TEMPLATE_DEBUG = False
+# SESSION_COOKIE_SECURE = True
+#
+# EMAIL_*, maybe
+#
+# and, last but not least:
+# ACServer specific things
+#
+# ACS_API_KEY
+# ACNODE_IP_RANGE
+#
