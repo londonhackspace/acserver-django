@@ -65,11 +65,11 @@ class Card(models.Model):
   def __unicode__(self):
     return u"%d %s" % (self.id, self.card_id)
 
-class Permissions(models.Model):
+class Permission(models.Model):
   user = models.ForeignKey(User)
   tool = models.ForeignKey(Tool)
   permission = models.PositiveIntegerField(choices = ((1, "user"),(2, "maintainer")))
-  addedby = models.ForeignKey(User, related_name="addedpermissions")
+  addedby = models.ForeignKey(User, related_name="addedpermission")
   date = models.DateTimeField()
 
   def __unicode__(self):
@@ -83,7 +83,7 @@ class Permissions(models.Model):
     if self.id:
       # object already exists, so update the datestamp on change...
       self.date = timezone.now()
-    return super(Permissions, self).save(*args, **kwargs)
+    return super(Permission, self).save(*args, **kwargs)
 
   class Meta:
     unique_together = (("user", "tool"),)

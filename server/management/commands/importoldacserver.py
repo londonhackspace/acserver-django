@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
-from server.models import Tool, Permissions, Log, User
+from server.models import Tool, Permission, Log, User
 
 import json, os, sys, datetime, pytz
 
@@ -63,7 +63,7 @@ class Command(BaseCommand):
           continue
       # check for existing permissions
       try:
-        ep = Permissions.objects.filter(user=User.objects.get(pk=p['user_id'])).get(tool_id=p['tool_id'])
+        ep = Permission.objects.filter(user=User.objects.get(pk=p['user_id'])).get(tool_id=p['tool_id'])
         # ok, a permission already exists.
         # check in case it's been changed
         if ep.permission != int(p['permission']):
@@ -97,7 +97,7 @@ class Command(BaseCommand):
           date = datetime.datetime.strptime(p['added_on'], format)
           date = gmt.localize(date)
 
-        perm = Permissions(
+        perm = Permission(
           user=User.objects.get(pk=p['user_id']),
           tool=Tool.objects.get(pk=p['tool_id']),
           permission = int(p['permission']),

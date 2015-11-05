@@ -2,14 +2,14 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.core.exceptions import ObjectDoesNotExist
 
-from models import Tool, User, Card, Permissions, Log
+from models import Tool, User, Card, Permission, Log
 
 import logging
 
 logger = logging.getLogger('django.request')
 
 def username_and_profile(u):
-  if u.__class__ == Permissions or u.__class__ == Card or u.__class__ == Log:
+  if u.__class__ == Permission or u.__class__ == Card or u.__class__ == Log:
     u = u.user
   return u'<a href="https://london.hackspace.org.uk/members/profile.php?id=%d">%s</a>' % (u.id, format_html(u.name))
 username_and_profile.short_description = 'Name'
@@ -35,7 +35,7 @@ class CardAdmin(admin.ModelAdmin):
   readonly_fields = ('user', 'card_id')
   list_display = ('card_id', username_and_profile,)
 
-class PermissionsAdmin(admin.ModelAdmin):
+class PermissionAdmin(admin.ModelAdmin):
   fields = (('tool', 'user', 'permission'),)
   list_display = ('tool', username_and_profile, 'permission', 'addedby', 'date')
   list_filter = ('tool', 'permission')
@@ -70,6 +70,6 @@ class LogAdmin(admin.ModelAdmin):
 admin.site.register(Tool, ToolAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(Card, CardAdmin)
-admin.site.register(Permissions, PermissionsAdmin)
+admin.site.register(Permission, PermissionAdmin)
 admin.site.register(Log, LogAdmin)
 

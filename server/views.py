@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.decorators import available_attrs
 
 
-from models import Tool, Card, User, Permissions, ToolUseTime, Log
+from models import Tool, Card, User, Permission, ToolUseTime, Log
 
 import json, logging
 from netaddr import IPAddress, IPNetwork
@@ -96,7 +96,7 @@ def card(request, tool_id, card_id):
     return HttpResponse('-1', content_type='text/plain')
 
   try:
-    perm = c.user.permissions_set.get(tool=t).permission
+    perm = c.user.permission_set.get(tool=t).permission
   except ObjectDoesNotExist, e:
     perm = 0
 
@@ -127,7 +127,7 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
     return HttpResponse('0', content_type='text/plain')
 
   try:
-    bcp = bc.user.permissions_set.get(tool=t).get_permission_display()
+    bcp = bc.user.permission_set.get(tool=t).get_permission_display()
     if bcp != 'maintainer':
       return HttpResponse(str(0), content_type='text/plain')
   except ObjectDoesNotExist, e:
@@ -143,14 +143,14 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
 
   try:
     # does the permission already exist?
-    p = Permissions.objects.filter(user=tc.user, tool=t)
+    p = Permission.objects.filter(user=tc.user, tool=t)
     # if so just report success.
     if len(p) > 0:
       return HttpResponse(str(1), content_type='text/plain')
   except ObjectDoesNotExist, e:
     pass
 
-  np = Permissions(user=tc.user, permission=1, tool=t, addedby=bc.user)
+  np = Permission(user=tc.user, permission=1, tool=t, addedby=bc.user)
   np.save()
 
   return HttpResponse(str(1), content_type='text/plain')
@@ -174,7 +174,7 @@ def settoolstatus(request, tool_id, status, card_id):
 
   if status == 1:
     # only maintainers can set a tool online
-    cp = c.user.permissions_set.get(tool=t).get_permission_display()
+    cp = c.user.permission_set.get(tool=t).get_permission_display()
     if cp != 'maintainer':
       return HttpResponse(str(0), content_type='text/plain')
 
@@ -301,7 +301,7 @@ def get_tools_summary_for_user(request, user_id):
     perm = 'un-authorised'
     if u:
       try:
-        perm = u.permissions_set.get(tool=t).get_permission_display()
+        perm = u.permission_set.get(tool=t).get_permission_display()
       except ObjectDoesNotExist:
         pass
     ret.append({'name': t.name, 'status': t.get_status_display(), 'status_message' : t.status_message, 'in_use' : t.get_inuse_display(), 'permission' : perm})
