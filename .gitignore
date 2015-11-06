@@ -3,3 +3,5 @@
 db.sqlite3
 mysite.log
 acserver/local_settings.py
+.coverage
+htmlcov

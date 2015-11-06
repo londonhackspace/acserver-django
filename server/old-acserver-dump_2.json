@@ -1,0 +1,35 @@
+[
+   [
+      {
+         "name" : "test_tool",
+         "status_message" : "working ok",
+         "status" : 1,
+         "acnode_id" : 1
+      },
+      {
+         "name" : "test_tool2",
+         "status_message" : "dead",
+         "status" : 0,
+         "acnode_id" : 2
+      }
+   ],
+   [
+      {
+         "last_used" : null,
+         "added_on" : "2015-11-06T21:10:17",
+         "permission" : 2,
+         "added_by_user_id" : null,
+         "user_id" : 3,
+         "tool_id" : 1
+      },
+      {
+         "last_used" : null,
+         "added_on" : "2015-11-06T21:10:17",
+         "permission" : 2,
+         "added_by_user_id" : null,
+         "user_id" : 3,
+         "tool_id" : 2
+      }
+   ],
+   []
+]

@@ -18,7 +18,8 @@ class Command(BaseCommand):
     if not os.path.exists(args[0]):
       raise CommandError('Can\'t find %s' % (path))
 
-    # you can 
+    # you can just import a single tool from the json file
+    # good for just importing the 3-in-1 lathe from babbage for example
     onlytool = None
 
     if len(args) == 2:
@@ -53,6 +54,20 @@ class Command(BaseCommand):
     # TZ='Europe/London'
     gmt = pytz.timezone('Europe/London')
 
+    def check_added_by(p):
+      added_by = None
+      if p['added_by_user_id'] == None:
+        # no user added this permission :/
+        # lets just use user 1 (Russ), it's as good as any
+        print "Warning: no added_by for permission %s, using user id 1" % (str(p))
+        added_by = 1
+      elif p['added_by_user_id'] == 0:
+        print "Warning: added_by for permission %s was 0, using user id 1" % (str(p))
+        added_by = 1
+      else:
+        added_by = p['added_by_user_id']
+      return added_by
+
     for p in perms:
       # {u'last_used': None, u'user_id': 38, u'tool_id': 1, u'permission': 2, u'added_by_user_id': None, u'added_on': u'2013-05-05T02:38:47'}
       # we ignore last_used...
@@ -71,7 +86,7 @@ class Command(BaseCommand):
           print ep
           print p
           ep.permission = int(p['permission'])
-          ep.addedby = User.objects.get(pk=added_by)
+          ep.addedby = User.objects.get(pk=check_added_by(p))
           date = datetime.datetime.strptime(p['added_on'], format)
           ep.date = gmt.localize(date)
           ep.save()
@@ -80,17 +95,6 @@ class Command(BaseCommand):
         # fine if it's not already in there.
         pass
       try:
-        added_by = None
-        if p['added_by_user_id'] == None:
-          # no user added this permission :/
-          # lets just use user 1 (Russ), it's as good as any
-          print "Warning: no added_by for permission %s, using user id 1" % (str(p))
-          added_by = 1
-        elif p['added_by_user_id'] == 0:
-          print "Warning: added_by for permission %s was 0, using user id 1" % (str(p))
-          added_by = 1
-        else:
-          added_by = p['added_by_user_id']
         if not p['added_on']:
           date = timezone.now()
         else:
@@ -101,7 +105,7 @@ class Command(BaseCommand):
           user=User.objects.get(pk=p['user_id']),
           tool=Tool.objects.get(pk=p['tool_id']),
           permission = int(p['permission']),
-          addedby = User.objects.get(pk=added_by),
+          addedby = User.objects.get(pk=check_added_by(p)),
           date = date
           )
         perm.save()

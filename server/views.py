@@ -143,10 +143,9 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
 
   try:
     # does the permission already exist?
-    p = Permission.objects.filter(user=tc.user, tool=t)
+    p = Permission.objects.get(user=tc.user, tool=t)
     # if so just report success.
-    if len(p) > 0:
-      return HttpResponse(str(1), content_type='text/plain')
+    return HttpResponse(str(1), content_type='text/plain')
   except ObjectDoesNotExist, e:
     pass
 
@@ -248,6 +247,11 @@ def settoolusetime(request, tool_id, card_id, duration):
     c = Card.objects.get(card_id=card_id)
   except ObjectDoesNotExist, e:
     return HttpResponse('0', content_type='text/plain')
+
+  # should we check that the user has permissions?
+  # we could be in a situation where someone is using a tool
+  # and there permisson is removed while they are using it.
+  # in that case we'd still want to log that the time they used...
 
   tut = ToolUseTime(tool=t, inuseby=c.user, duration=int(duration))
   tut.save()
