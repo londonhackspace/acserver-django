@@ -24,4 +24,6 @@ urlpatterns = patterns('',
     url(r'^(?P<tool_id>\d+)/tooluse/time/for/(?P<card_id>[a-fA-F0-9]+)/(?P<duration>[0-9]+)$', 'server.views.settoolusetime'),
 #/api/get_tools_summary_for_user/1
     url(r'^api/get_tools_summary_for_user/(?P<user_id>[0-9]+)$', 'server.views.get_tools_summary_for_user'),
+#/api/get_tools_status
+    url(r'^api/get_tools_status$', 'server.views.get_tools_status'),
 )
