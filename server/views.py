@@ -311,3 +311,16 @@ def get_tools_summary_for_user(request, user_id):
     ret.append({'name': t.name, 'status': t.get_status_display(), 'status_message' : t.status_message, 'in_use' : t.get_inuse_display(), 'permission' : perm})
 
   return HttpResponse(json.dumps(ret), content_type='text/plain')
+
+
+# settings.ACS_API_KEY
+# HttpRequest.META
+@require_api_key
+@require_GET
+def get_tools_status(request):
+  ret = []
+  # [{u'status': u'Operational', u'status_message': u'working ok', u'name': u'test_tool', u'in_use': u'no'}]
+  for t in Tool.objects.order_by('pk'):
+    ret.append({'name': t.name, 'status': t.get_status_display(), 'status_message' : t.status_message, 'in_use' : t.get_inuse_display()})
+
+  return HttpResponse(json.dumps(ret), content_type='application/json')
