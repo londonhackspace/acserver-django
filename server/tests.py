@@ -433,6 +433,29 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 401)
     self.failUnless(resp.content.startswith('API Key required'))
 
+  def test_get_tools_status(self):
+    # get_tools_status basic test
+    client = Client()
+
+    resp = client.get('/api/get_tools_status', HTTP_API_KEY='KEY GOES HERE')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content)
+    self.failUnless(ret[0]['name'] == 'test_tool')
+
+  def test_get_tools_status_multiple_tools(self):
+    # get_tools_status test with an extra tool
+    client = Client()
+
+    # setUp already adds 2 tools, this takes us up to 3
+    t = Tool(name='hello kitty', status=1, status_message='Ok')
+    t.save()
+
+    resp = client.get('/api/get_tools_status', HTTP_API_KEY='KEY GOES HERE')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content)
+    print ret
+    self.failUnless(len(ret) == 3)
+
 class ModelTests(TestCase):
   def setUp(self):
     t = Tool(id=1, name='test_tool', status=1, status_message='working ok')

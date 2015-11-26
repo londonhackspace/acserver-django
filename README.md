@@ -1,6 +1,8 @@
 
 Dependencies:
 
+Assuming Debian jessie:
+
 apt-get install python-django python-django-auth-ldap python-sqlite python-psycopg2 python-netaddr python-pip
 
 For LDAP syncing:
@@ -23,6 +25,8 @@ now import the carddb.json:
 
 ./manage.py updatecarddb /path/to/carddb.json
 
+(If you just want some initial data to test with you can use server/0_carddb.json)
+
 Using the permissions thing with LDAP:
 
 Go to the "Authentication and Authorization" section of the Django admin and then to Groups.
@@ -33,8 +37,35 @@ Add an ACServer Admins group that has all the 'tool' and 'permissions' permissio
 Now you can add a user to that group (you have to do it from the users page) and they will be able
 to add tools and permissions. Note that they can set a permission for anyone on any tool!
 
+Running tests:
+
+Running all the tests:
+
+./manage.py test
+
+n.b. there are a few sleeps in there, so don;t worry if it pauses for a couple of seconds.
+
+Running just some tests:
+
+./manage.py test server.tests.<testclass>
+
+e.g.
+
+./manage.py test server.tests.ToolTests
+
+you can also run a specific test:
+
+./manage.py test server.tests.ToolTests.test_adduser
+
+Running coverage tests:
+
+You'll need to install the python-coverage package (on debian), on other distros the command may just be 'coverage'
+
+python-coverage run --source='.' manage.py test ; python-coverage html
+
 Todo:
 
+* virtualenv
 * permissions for users in the admin:
  * some can make others maintaainers for any tool
  * some users can only maintain some tools
