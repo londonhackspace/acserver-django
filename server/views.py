@@ -302,7 +302,7 @@ def get_tools_summary_for_user(request, user_id):
   ret = []
   # [{u'status': u'Operational', u'permission': u'user', u'status_message': u'working ok', u'name': u'test_tool', u'in_use': u'no'}]
   for t in Tool.objects.order_by('pk'):
-    perm = 'un-authorised'
+    perm = 'unauthorised'
     if u:
       try:
         perm = u.permission_set.get(tool=t).get_permission_display()

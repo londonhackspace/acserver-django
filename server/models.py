@@ -38,6 +38,8 @@ class User(models.Model):
 class Tool(models.Model):
   name = models.TextField()
   status = models.PositiveIntegerField(default=0, choices = ((1, "Operational"), (0, "Out of service")))
+  # If a tool is in service the status_message should be 'OK'
+  # cos the website depends on that :/
   status_message = models.TextField()
   inuse = models.BooleanField(default=False, choices = ((True, "yes"),(False, "no")))
   inuseby = models.ForeignKey(User, null=True, default=None)

@@ -388,8 +388,8 @@ class ToolTests(TestCase):
     resp = client.get('/api/get_tools_summary_for_user/%d' % (42,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content)
-    self.failUnless(ret[0]['permission'] == 'un-authorised')
-    self.failUnless(ret[1]['permission'] == 'un-authorised')
+    self.failUnless(ret[0]['permission'] == 'unauthorised')
+    self.failUnless(ret[1]['permission'] == 'unauthorised')
 
   def test_get_tools_summary_for_user_adding_user(self):
     # get_tools_summary_for_user for user who is not authorised, and
@@ -399,7 +399,7 @@ class ToolTests(TestCase):
     resp = client.get('/api/get_tools_summary_for_user/%d' % (3,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content)
-    self.failUnless(ret[0]['permission'] == 'un-authorised')
+    self.failUnless(ret[0]['permission'] == 'unauthorised')
 
     # add user 3 as a user
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user1a))
