@@ -74,6 +74,19 @@ AUTH_LDAP_PROFILE_FLAGS_BY_GROUP = {
 #    ldap.OPT_X_TLS_DEMAND: True,
 #}
 
+#
+# postgres is nice.
+#
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'acserver',
+        'USER': 'username',
+        'PASSWORD': 'secret123',
+        'HOST': '',  #localhost
+    }
+}
+
 # You will also need to set:
 #
 # SECRET_KEY
