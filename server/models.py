@@ -2,6 +2,8 @@ from django.db import models
 from django.utils.html import format_html
 from django.utils import timezone
 
+import sys
+
 # user
 class User(models.Model):
   # the id field is created automatticly by django
@@ -16,7 +18,13 @@ class User(models.Model):
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
   
   def __unicode__(self):
-    return u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
+    o = u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
+    if not sys.stdout.encoding:
+      return unicode(o).encode("ascii", "replace")
+    return o
+
+  def __str__(self):
+    return self.__unicode__()
 
   def lhsid(self):
     if self.id == None:

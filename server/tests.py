@@ -648,6 +648,44 @@ class DbUpdateTests(TestCase):
     ret = self.querycard(self.user3)
     self.assertEqual(ret, '1')
 
+  def test_unicode_carddb(self):
+    ret = self.querycard(self.user3)
+    self.assertEqual(ret, '1')
+
+    # this should fail with an encoding error:
+    #
+    # UnicodeDecodeError: 'ascii' codec can't decode byte 0xf0 in position 37: ordinal not in range(128)
+    #
+    # but something is different in the test env. vs. the shell, so it works! (even when via | cat so
+    # stdout is not a terminal)
+    self.update_carddb("unicode_carddb.json")
+
+    u = User.objects.get(id=9)
+
+  def test_unicode_carddb_twice(self):
+    ret = self.querycard(self.user3)
+    self.assertEqual(ret, '1')
+
+    # this should fail with an encoding error:
+    #
+    # UnicodeDecodeError: 'ascii' codec can't decode byte 0xf0 in position 37: ordinal not in range(128)
+    #
+    # but something is different in the test env. vs. the shell, so it works! (even when via | cat so
+    # stdout is not a terminal)
+    #
+    # This tests adding new users with overlong cards
+    #
+    self.update_carddb("unicode_carddb.json")
+
+    u = User.objects.get(id=9)
+    self.assertEqual(u.pk, 9)
+
+    #
+    # Doing it a 2nd time means we test updating a user who has overlong cards.
+    #
+    self.update_carddb("unicode_carddb.json")
+
+
 # importoldacserver
 class ImportOldTests(TestCase):
 

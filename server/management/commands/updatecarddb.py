@@ -1,10 +1,19 @@
+# -*- coding: utf-8 -*-
+
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DataError
+from django.db import DataError, transaction
 
 from server.models import User, Card
 
-import json, os, sys
+import json, os, sys, inspect
+
+def PrintFrame():
+  callerframerecord = inspect.stack()[1]    # 0 represents this line
+                                            # 1 represents line at caller
+  frame = callerframerecord[0]
+  info = inspect.getframeinfo(frame)
+  print "%s:%s, %d" % (info.filename, info.function, info.lineno)
 
 class Command(BaseCommand):
   args = '<path/to/carddb.json>'
@@ -39,51 +48,61 @@ class Command(BaseCommand):
           # add new cards
           if c not in [x.card_id for x in ecs]:
             try:
-              eu.card_set.add(Card(card_id=c))
+              if len(c) <= 14:
+                eu.card_set.add(Card(card_id=c))
+              else:
+                print u"for %s, card id %s is too long" % (eu, c)
             except DataError as e:
-              print "error adding new card for %s, card too long? %s" % (eu, c)
               print u
               print e
+              print u"error adding new card for %s, card too long? %s" % (eu, c)
         eu.save()
       else:
-        nu = User(id=int(u['id']), name=u['nick'], subscribed=u['subscribed'])
-        try:
-          nu.save()
-        except Exception as e:
-          print "blah."
-          print e
-          print u
-        for c in u['cards']:
+        with transaction.atomic():
+          nu = User(id=int(u['id']), name=u['nick'], subscribed=u['subscribed'])
           try:
-            # the card already exist?
-            ec = Card.objects.get(card_id=c)
-            # bother, it does.
-            # Which of the 2 users is subscribed?
-            if not u['subscribed']:
-              print "skipping card %s, it's already in the db and this user is not subscribed" % (c,)
-              continue
-            else:
-              # darn, maybe the other user is not subscribed?
-              if not ec.user.subscribed:
-                print "card %s is already in the db for %s, but they are not subscribed so i'm deleting the card" % (c, ec.user)
-                ec.delete()
-              else:
-                print "panic: card id %s is in use by 2 users: %s and %s" % (c, ec.user, nu)
-          except ObjectDoesNotExist:
-            pass
+            nu.save()
           except Exception as e:
+            print "blah."
+            print e, type(e)
             print u
-            print "lol wtf", e
+          for c in u['cards']:
+            try:
+              # the card already exist?
+              ec = Card.objects.get(card_id=c)
+              # bother, it does.
+              # Which of the 2 users is subscribed?
+              if not u['subscribed']:
+                print "skipping card %s, it's already in the db and this user is not subscribed" % (c,)
+                continue
+              else:
+                # darn, maybe the other user is not subscribed?
+                if not ec.user.subscribed:
+                  print "card %s is already in the db for %s, but they are not subscribed so i'm deleting the card" % (c, ec.user)
+                  ec.delete()
+                else:
+                  print "panic: card id %s is in use by 2 users: %s and %s" % (c, ec.user, nu)
+            except ObjectDoesNotExist:
+              pass
+            except Exception as e:
+              print u
+              print "lol wtf", e
+            try:
+              if len(c) <= 14:
+                nu.card_set.add(Card(card_id=c))
+              else:
+                print u"for %s, card id %s is too long" % (nu, c)
+            except Exception as e:
+              print e, type(e)
+              PrintFrame()
+              print u
+              print nu
+              continue
           try:
-            nu.card_set.add(Card(card_id=c))
+            nu.save()
           except Exception as e:
-            print e
+            print e, type(e)
+            PrintFrame()
             print u
             print nu
-        try:
-          nu.save()
-        except Exception as e:
-          print e
-          print u
-          print nu
     fh.close()
