@@ -5,6 +5,8 @@ Assuming Debian jessie:
 
 apt-get install python-django python-django-auth-ldap python-sqlite python-psycopg2 python-netaddr python-pip
 
+If you are not on jessie, try pip install ./requirements.txt
+
 For LDAP syncing:
 
 pip install --verbose --no-deps django-ldap-sync
