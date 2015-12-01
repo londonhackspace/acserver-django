@@ -636,6 +636,18 @@ class DbUpdateTests(TestCase):
     # and now they should work
     self.failUnless(self.querycard(self.user3) == '1')
 
+  def test_empty_carddb(self):
+    # it's possible things could bug out and give us an empty carddb
+    # don't nuke all the users if thats the case.
+    ret = self.querycard(self.user3)
+    self.assertEqual(ret, '1')
+
+    self.update_carddb("empty_carddb.json")
+
+    # this works by accident, we don't specificly test for it.
+    ret = self.querycard(self.user3)
+    self.assertEqual(ret, '1')
+
 # importoldacserver
 class ImportOldTests(TestCase):
 
