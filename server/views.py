@@ -5,13 +5,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.decorators import available_attrs
-
+from django.db.models import Sum
 
 from models import Tool, Card, User, Permission, ToolUseTime, Log
 
-import json, logging
+import json, logging, datetime
 from netaddr import IPAddress, IPNetwork
 from functools import wraps
+from pytz import timezone
 
 logger = logging.getLogger('django.request')
 
@@ -313,8 +314,6 @@ def get_tools_summary_for_user(request, user_id):
   return HttpResponse(json.dumps(ret), content_type='text/plain')
 
 
-# settings.ACS_API_KEY
-# HttpRequest.META
 @require_api_key
 @require_GET
 def get_tools_status(request):
@@ -322,5 +321,44 @@ def get_tools_status(request):
   # [{u'status': u'Operational', u'status_message': u'working ok', u'name': u'test_tool', u'in_use': u'no'}]
   for t in Tool.objects.order_by('pk'):
     ret.append({'name': t.name, 'status': t.get_status_display(), 'status_message' : t.status_message, 'in_use' : t.get_inuse_display()})
+
+  return HttpResponse(json.dumps(ret), content_type='application/json')
+
+#@require_api_key
+@require_GET
+def get_tool_runtime(request, tool_id, start_time):
+  # start_time is a time_t
+  t = Tool.objects.get(pk=int(tool_id))
+
+  # start = datetime.datetime.fromtimestamp(time.time()) - datetime.timedelta(0,3600 * 24 * 90,0)
+  # time.mktime(start.timetuple())
+
+  # XXX timezone here should get system one, or use django settings or something :/
+  start = datetime.datetime.fromtimestamp(float(start_time),timezone("Europe/London"))
+
+  seconds = Log.objects.filter(tool=t).filter(date__gt=start).filter(message='Time Used').aggregate(Sum('time'))['time__sum']
+
+  if not seconds:
+    seconds = 0
+
+#  seconds = 3600 * 42
+
+  hours = seconds / 3600
+  minutes = (seconds % 3600) / 60
+  seconds = (seconds % 3600) % 60
+
+  printable = '%dh:%dm:%ds' % (hours, minutes, seconds)
+
+  #
+  # the 700 hour lifetime is right for the lasercutter here, needs to be configureable on a per tool basis
+  # and updatable by maintainers.
+  #
+  # ... and the text here is only applicable to the lasercutter :/
+  #
+  verbose = printable + ' of lasing have occurred. Approximately %d hours until the tube dies.' % (700 - hours)
+
+  ret = []
+  # {'name': name, 'seconds': secs, 'printable': 'HH:MM:SS', 'verbose': 'blah blah'}
+  ret.append({'name': t.name, 'seconds' : seconds, 'printable' : printable, 'verbose': verbose})
 
   return HttpResponse(json.dumps(ret), content_type='application/json')

@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.html import format_html
 from django.utils import timezone
 
-import sys
+import sys, datetime
 
 # user
 class User(models.Model):

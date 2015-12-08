@@ -26,4 +26,6 @@ urlpatterns = patterns('',
     url(r'^api/get_tools_summary_for_user/(?P<user_id>[0-9]+)$', 'server.views.get_tools_summary_for_user'),
 #/api/get_tools_status
     url(r'^api/get_tools_status$', 'server.views.get_tools_status'),
+#/api/get_tool_runtime
+    url(r'^api/get_tool_runtime_since/(?P<tool_id>[0-9]+)/(?P<start_time>[0-9]+)$', 'server.views.get_tool_runtime'),
 )
