@@ -341,7 +341,11 @@ def get_tool_runtime(request, tool_id, start_time):
   if not seconds:
     seconds = 0
 
-#  seconds = 3600 * 42
+  #solexious: 399h:56m:57s of lasing have occurred. was on the 18th of august
+  if int(tool_id) == 5:
+    # the laser cutter
+    coolbot = (399 * 3600) + (56 * 60) + 57
+    seconds = seconds + coolbot
 
   hours = seconds / 3600
   minutes = (seconds % 3600) / 60
