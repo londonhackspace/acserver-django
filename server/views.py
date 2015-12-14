@@ -341,10 +341,18 @@ def get_tool_runtime(request, tool_id, start_time):
   if not seconds:
     seconds = 0
 
-  #solexious: 399h:56m:57s of lasing have occurred. was on the 18th of august
+  #
+  # solexious: 399h:56m:57s of lasing have occurred. was on the 18th of august
+  #
+  # colin:/tank/babbage-backup-2015/home/solexious/coolbot/ : 1798023
+  # ^-- datestamp was Oct 20 01:30
+  # which is 499h:27m:03s
+  #
+  # BUT - we don't know when it started... :(
+  #
   if int(tool_id) == 5:
     # the laser cutter
-    coolbot = (399 * 3600) + (56 * 60) + 57
+    coolbot = 1798023
     seconds = seconds + coolbot
 
   hours = seconds / 3600
