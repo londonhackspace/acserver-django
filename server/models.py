@@ -19,8 +19,9 @@ class User(models.Model):
   
   def __unicode__(self):
     o = u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
-    if not sys.stdout.encoding:
-      return unicode(o).encode("ascii", "replace")
+    if hasattr(sys.stdout, "encoding"):
+      if not sys.stdout.encoding:
+        return unicode(o).encode("ascii", "replace")
     return o
 
   def __str__(self):
