@@ -336,7 +336,8 @@ def get_tool_runtime(request, tool_id, start_time):
   # XXX timezone here should get system one, or use django settings or something :/
   start = datetime.datetime.fromtimestamp(float(start_time),timezone("Europe/London"))
 
-  seconds = Log.objects.filter(tool=t).filter(date__gt=start).filter(message='Time Used').aggregate(Sum('time'))['time__sum']
+  # filter out runs that lasted longer than 24 hours, see issue #5
+  seconds = Log.objects.filter(tool=t).filter(date__gt=start).filter(message='Time Used').filter(time__lt=3600 * 24).aggregate(Sum('time'))['time__sum']
 
   if not seconds:
     seconds = 0
