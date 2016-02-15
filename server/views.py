@@ -24,7 +24,7 @@ def check_secret(func):
         tool = Tool.objects.get(pk=kwargs['tool_id'])
       except ObjectDoesNotExist, e:
         return func(request, *args, **kwargs)
-      if tool.secret != None:
+      if tool.secret != None and tool.secret != "":
         if 'HTTP_X_AC_KEY' not in request.META:
           # the tool has a secret, but it's wasn't sent
           # so just fail it.
@@ -46,6 +46,7 @@ def check_secret(func):
           return HttpResponse('0', content_type='text/plain')
       else:
         if 'HTTP_X_AC_KEY' in request.META:
+          # N.B. this allows acnodes to send a secret if we don't have one.
           logger.warning('tool %d sent a secret key, but we don\'t have one for it! // %s from %s', tool.id, request.path, request.META['REMOTE_ADDR'],
                     extra={
                         'status_code': 200,

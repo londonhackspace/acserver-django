@@ -53,7 +53,8 @@ class Tool(models.Model):
   inuse = models.BooleanField(default=False, choices = ((True, "yes"),(False, "no")))
   inuseby = models.ForeignKey(User, null=True, default=None)
   # can be null cos some acnodes may be running old code.
-  secret = models.CharField(max_length=8, null=True)
+  secret = models.CharField(max_length=8, blank=True, default="")
+  secret.help_text = "The shared secret to use with the acnode, only for version 0.8 or better acnodes"
 
   def __unicode__(self):
     return u"%s (id: %d)" % (self.name, self.id)
