@@ -6,8 +6,7 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core import management
-
-from server.models import Tool, Card, User, Permission
+from server.models import Tool, Card, User, Permission, DJACUser
 
 class ToolTests(TestCase):
   def setUp(self):
@@ -768,3 +767,51 @@ class ImportOldTests(TestCase):
     self.failUnless(p.permission == 2)
 
 
+class DjangoPermsTests(TestCase):
+
+  def update_carddb(self, file):
+    management.call_command('updatecarddb', os.getcwd() + os.path.sep + 'server' + os.path.sep + file, verbosity=2)
+
+  def setUp(self):
+    self.update_carddb('0_carddb.json')
+    t = Tool(id=1, name='test_tool', status=1, status_message='OK')
+    t.save()
+    t = Tool(id=2, name='test_tool2', status=1, status_message='OK')
+    t.save()
+    # make user3 a user
+    p = Permission(user=User.objects.get(pk=3), permission=1, tool=Tool.objects.get(pk=1), addedby=User.objects.get(pk=1))
+    p.save()
+    # and user 1 a maintainer for tool 1
+    p = Permission(user=User.objects.get(pk=1), permission=2, tool=Tool.objects.get(pk=1), addedby=User.objects.get(pk=1))
+    p.save()
+
+    # and user 7 a maintainer for tool 2
+    p = Permission(user=User.objects.get(pk=7), permission=2, tool=Tool.objects.get(pk=2), addedby=User.objects.get(pk=1))
+    p.save()
+
+    # Add some django users, in reality these would come from LDAP
+    # yes, the acserver user object is called User, same as the django one, so we call
+    # our proxy object DJACUser...
+
+    u1 = User.objects.get(pk=1)
+    u3 = User.objects.get(pk=3)
+    u7 = User.objects.get(pk=7)
+
+    # the id's need to match up
+    for u in (u1, u3, u7):
+      ndju = DJACUser(id=u.id, username=u.name, email=u.name + "@localhost", password = "abc")
+      ndju.save()
+
+  def test_maintainer_is_staff(self):
+    u = DJACUser.objects.get(pk=1)
+    # user 1 is a maintainer for tool 1
+    self.failUnless(u.is_staff == True)
+
+    u = DJACUser.objects.get(pk=7)
+    # user 7 is a maintainer for tool 2
+    self.failUnless(u.is_staff == True)
+
+  def test_user_is_not_staff(self):
+    u = DJACUser.objects.get(pk=3)
+    # user 3 is not a maintainer (tho it is a user)
+    self.failUnless(u.is_staff == False)

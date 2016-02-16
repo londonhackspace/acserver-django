@@ -1,8 +1,11 @@
 from django.db import models
 from django.utils.html import format_html
 from django.utils import timezone
+# yes, the acserver user object is called User, same as the django one, so we call it
+# DJUser...
+from django.contrib.auth.models import User as DJUser
 
-import sys, datetime
+import sys, datetime, logging
 
 # user
 class User(models.Model):
@@ -116,3 +119,31 @@ class Log(models.Model):
     if not self.date:
       self.date = timezone.now()
     return super(Log, self).save(*args, **kwargs)
+
+#
+# A proxy for the django User object
+# that makes all maintainers a staff member so they can log into the admin
+# UI
+#
+# This dosn't give them any permissions to do anything tho!
+#
+class DJACUser(DJUser):
+  class Meta:
+    proxy = True
+    app_label = 'auth'
+    verbose_name = 'User'
+
+  def __getattribute__(self, name):
+    logger = logging.getLogger('django')
+    parent = super(DJACUser, self).__getattribute__(name)
+    if name == 'is_staff':
+      try:
+        acu = User.objects.get(pk=self.id)
+      except Exception, e:
+        # XXX ObjectDoesNotExist if it's not an acnode user.
+        # should never happen on the live server(?)
+        logger.critical('exception in DJACUser __getattribute__ %s', e)
+        return parent
+      if len(acu.permission_set.filter(permission=2).all()) > 0:
+        return True
+    return object.__getattribute__(self, name)

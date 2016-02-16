@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.admin import UserAdmin as DJUserAdmin
+from django.contrib.auth.models import User as DJUser
 
-from models import Tool, User, Card, Permission, Log
+from models import Tool, User, Card, Permission, Log, DJACUser
 
 import logging
 
@@ -66,6 +68,11 @@ class LogAdmin(admin.ModelAdmin):
   list_filter = ('tool',)
   readonly_fields = ('tool', 'user', 'date', 'message')
   search_fields = ('user__name',)
+
+# we don't want to use the Django User object in the admin
+# substitute it with our own
+admin.site.unregister(DJUser)
+admin.site.register(DJACUser, DJUserAdmin)
 
 admin.site.register(Tool, ToolAdmin)
 admin.site.register(User, UserAdmin)
