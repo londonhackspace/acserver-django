@@ -2,10 +2,23 @@
 <head>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
-<style link="{% static "/"%}"> </style>
+{% load staticfiles %}
+<link href="{% static  "cal-heatmap-master/cal-heatmap.css" %}" rel="stylesheet">
+<script src="{% static "cal-heatmap-master/cal-heatmap.min.js" %}"></script>
+
 <title> Just testing cal heatmap thing </title>
 </head>
 
+
 <body>
 
+<div id="cal-heatmap"></div>
+<script type="text/javascript">
+	var cal = new CalHeatMap();
+	cal.init({});
+</script>
 
+
+
+</body>
+</html>

@@ -1,5 +1,5 @@
-from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseNotAllowed, HttpResponseForbidden
+from django.shortcuts import render_to_response, get_object_or_404, render
+from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseNotAllowed, HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
@@ -376,3 +376,12 @@ def get_tool_runtime(request, tool_id, start_time):
   ret.append({'name': t.name, 'seconds' : seconds, 'printable' : printable, 'verbose': verbose})
 
   return HttpResponse(json.dumps(ret), content_type='application/json')
+
+
+
+
+#just testing some simple UI stuff
+def calheatmap1(request):
+  #stufftest = {}
+  #stufftest['thing'] = "test"
+  return render(request, 'server/calheatmaptest.html')
