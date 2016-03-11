@@ -369,7 +369,7 @@ def get_tool_runtime(request, tool_id, start_time):
   #
   # ... and the text here is only applicable to the lasercutter :/
   #
-  verbose = printable + ' of lasing have occurred. Approximately %d hours until the tube dies.' % (700 - hours)
+  verbose = printable + ' of lasing have occurred. Approximately %d hours until the tube dies.' % (2800 - hours)
 
   ret = []
   # {'name': name, 'seconds': secs, 'printable': 'HH:MM:SS', 'verbose': 'blah blah'}
