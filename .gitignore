@@ -5,3 +5,5 @@ mysite.log
 acserver/local_settings.py
 .coverage
 htmlcov
+carddb.json
+.vagrant
