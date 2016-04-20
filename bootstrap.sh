@@ -4,3 +4,6 @@ apt-get install -y python-django python-django-auth-ldap python-sqlite python-ps
 cd /vagrant
 ./manage.py syncdb --noinput
 ./manage.py updatecarddb carddb.json
+
+nohup ./manage.py runserver 0.0.0.0:1234 &
+
