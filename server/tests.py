@@ -1,11 +1,11 @@
 import datetime, time, json, os
 
-from django.test import TestCase
-from django.test import Client
+from django.test import TestCase, Client
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core import management
+from django.db.models import Max
 from server.models import Tool, Card, User, Permission, DJACUser
 
 class ToolTests(TestCase):
@@ -39,6 +39,7 @@ class ToolTests(TestCase):
         u.save()
       except ObjectDoesNotExist:
         u = User(id=id, name=name, subscribed=subscribed)
+        u.save()
         u.card_set.add(Card(card_id=card))
         u.save()
 
@@ -445,14 +446,20 @@ class ToolTests(TestCase):
     # get_tools_status test with an extra tool
     client = Client()
 
+    # we insert the other tools with a fixed id, and in that case
+    # django doesn't update the id sequence
+    # so fudge it here and make the id the max of the existing ones.
+    max_id = Tool.objects.all().aggregate(Max('id'))['id__max']
+    max_id += 1
+
     # setUp already adds 2 tools, this takes us up to 3
-    t = Tool(name='hello kitty', status=1, status_message='Ok')
+    t = Tool(id=max_id, name='hello kitty', status=1, status_message='Ok')
     t.save()
 
     resp = client.get('/api/get_tools_status', HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content)
-    print ret
+#    print ret
     self.failUnless(len(ret) == 3)
 
 class ModelTests(TestCase):
