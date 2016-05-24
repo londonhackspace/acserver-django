@@ -30,4 +30,6 @@ urlpatterns = patterns('',
     url(r'^api/get_tool_runtime_since/(?P<tool_id>[0-9]+)/(?P<start_time>[0-9]+)$', 'server.views.get_tool_runtime'),
 #/uitest_calheatmap1
     url(r'^uitest_calheatmap1$', 'server.views.calheatmap1'),  
+#/ac_card_usage
+    url(r'^ac_card_usage$', 'server.views.ac_card_usage', name='ac_card_usage')
 )

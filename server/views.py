@@ -377,7 +377,14 @@ def get_tool_runtime(request, tool_id, start_time):
 
   return HttpResponse(json.dumps(ret), content_type='application/json')
 
+#json response with ac usage info
+def ac_card_usage(request):
 
+    ac_card_stats = {}
+
+    ac_card_stats['loltest'] = 'loldjangotest'
+
+    return JsonResponse(ac_card_stats)
 
 
 #just testing some simple UI stuff
