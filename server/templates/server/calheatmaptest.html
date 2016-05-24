@@ -13,14 +13,18 @@
 <body>
 
 <div id="cal-heatmap"></div>
-<script="text/javascript">
+<div class="d3outputtest1"></div>
+<script type="text/javascript">
 var data;
 
-d3.json("path/to/file.json", function(error, json) {
+d3.json("/ac_card_usage", function(error, json) {
   if (error) return console.warn(error);
   data = json;
-  visualizeit();
+  d3.selectAll('.d3outputtest1').text(data.loltest);
+
+  //visualizeit();
 });
+
 </script>
 
 <script type="text/javascript">
