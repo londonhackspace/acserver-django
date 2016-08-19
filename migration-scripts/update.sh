@@ -23,15 +23,16 @@ function check_ret ()
 	return 0
 }
 
+cd `dirname $0`
+check_ret
 
+rm -f ${tmp}/old-acserver.json
 
-rm -f old-acserver.json
-
-./acserver-dump.py `cat mysql_password` > old-acserver.json 2> $log
+./acserver-dump.py `cat mysql_password` > ${tmp}/old-acserver.json 2> $log
 check_ret
 
 # This only imports the laser cutter.
-../manage.py importoldacserver ./old-acserver.json 5 > $log 2>&1
+../manage.py importoldacserver ${tmp}/old-acserver.json 5 > $log 2>&1
 check_ret
 
 rm -f $log
