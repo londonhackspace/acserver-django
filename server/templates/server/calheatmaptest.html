@@ -5,15 +5,64 @@
 {% load staticfiles %}
 <link href="{% static  "cal-heatmap-master/cal-heatmap.css" %}" rel="stylesheet">
 <script src="{% static "cal-heatmap-master/cal-heatmap.min.js" %}"></script>
+<link href="{% static "bootstrap-3.3.7-dist/css/bootstrap.css" %}" rel="stylesheet">
+<link href="{% static "starter-template.css" %}" rel="stylesheet">
 
 <title> Just testing cal heatmap thing </title>
 </head>
 
 
 <body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Tool Usage</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
 
+    <div class="container">
+
+      <div class="starter-template">
+        <h1>Laser cutter usage stuff</h1>
+        <p class="lead">Please insert roflcopters...</p>
+      </div>
+
+    </div><!-- /.container -->
+<div class="container">
+ <div class="row">
+  <div class="col-md-4">
 <div id="cal-heatmap"></div>
 <div class="d3outputtest1"></div>
+  </div>
+ </div>
+</div>
+    <div class="container">
+
+      <div class="starter-template">
+        <h1>Table of outputs</h1>
+        <p class="lead">lines of usage.</p>
+      </div>
+
+    </div><!-- /.container -->
+{{ timenow }} <br>
+{{ loltest }} <br>
+{{ logtimes }}
+{{ loglen }}
+
 <script type="text/javascript">
 var data;
 
@@ -29,10 +78,19 @@ d3.json("/ac_card_usage", function(error, json) {
 
 <script type="text/javascript">
 	var cal = new CalHeatMap();
-	cal.init({});
+	var d = { {{ testjsonnumber }}: 25};
+	cal.init({range: 7,
+			start: new Date( {{ yearthen }} , {{ monththen }}, {{ daythen }}, 1),
+			data: d,
+			domain: "day",
+			subDomain: "min",
+			considerMissingDataAsZero: true,
+			previousSelector: "#previous",
+			nextSelector: "#next"});
 </script>
 
-
+<script src="{% static "bootstrap-3.3.7-dist/js/bootstrap.min.js" %}"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
 </body>
 </html>

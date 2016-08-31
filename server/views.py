@@ -391,4 +391,33 @@ def ac_card_usage(request):
 def calheatmap1(request):
   #stufftest = {}
   #stufftest['thing'] = "test"
-  return render(request, 'server/calheatmaptest.html')
+  from datetime import timedelta
+  from datetime import datetime
+  from . import models
+  import time
+
+  diffs = timedelta(days = -1)
+  timenow = datetime.now() 
+  timethen = timenow + diffs
+  yearthen = timethen.year
+  daythen = timethen.day - 1
+  monththen = timethen.month - 1
+ 
+  #logses = models.Log.objects.all()
+  #lolz = logses[0].message
+
+  clogs = []
+  for e in models.Log.objects.filter(date__gte=timethen, tool_id=5):
+    clogs.append(e)
+
+  #clogsarray = list();
+  #for i in chartlogs:
+  #  clogsarray.append(i.time())
+  clens = len(clogs)
+  #epoch_time = int(time.time())
+  #testdiff = timedelta(days = -10)
+  #epochtest = epoch_time - testdiff.milliseconds
+ 
+  context = {"yearthen": yearthen, "monththen": monththen, "daythen": daythen, "loltest": 23456, "testjsonnumber": 1472100000, "logtimes": clogs, "loglen": clens }
+
+  return render(request, 'server/calheatmaptest.html', context)
