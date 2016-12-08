@@ -343,6 +343,10 @@ def get_tool_runtime(request, tool_id, start_time):
   if not seconds:
     seconds = 0
 
+  hours = seconds / 3600
+  minutes = (seconds % 3600) / 60
+  seconds = (seconds % 3600) % 60
+
   printable = '%dh:%dm:%ds' % (hours, minutes, seconds)
 
   #
