@@ -343,33 +343,15 @@ def get_tool_runtime(request, tool_id, start_time):
   if not seconds:
     seconds = 0
 
-  #
-  # solexious: 399h:56m:57s of lasing have occurred. was on the 18th of august
-  #
-  # colin:/tank/babbage-backup-2015/home/solexious/coolbot/ : 1798023
-  # ^-- datestamp was Oct 20 01:30
-  # which is 499h:27m:03s
-  #
-  # BUT - we don't know when it started... :(
-  #
-  if int(tool_id) == 5:
-    # the laser cutter
-    coolbot = 1798023
-    seconds = seconds + coolbot
-
-  hours = seconds / 3600
-  minutes = (seconds % 3600) / 60
-  seconds = (seconds % 3600) % 60
-
   printable = '%dh:%dm:%ds' % (hours, minutes, seconds)
 
   #
-  # the 700 hour lifetime is right for the lasercutter here, needs to be configureable on a per tool basis
+  # the 1430 hour lifetime is right for the lasercutter here, needs to be configureable on a per tool basis
   # and updatable by maintainers.
   #
   # ... and the text here is only applicable to the lasercutter :/
   #
-  verbose = printable + ' of lasing have occurred. Approximately %d hours until the tube dies.' % (2800 - hours)
+  verbose = printable + ' of lasing have occurred. Approximately %d hours until the tube dies.' % (1430 - hours)
 
   ret = []
   # {'name': name, 'seconds': secs, 'printable': 'HH:MM:SS', 'verbose': 'blah blah'}
