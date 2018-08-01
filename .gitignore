@@ -7,3 +7,6 @@ acserver/local_settings.py
 htmlcov
 carddb.json
 .vagrant
+migration-scripts/mysql_password
+migration-scripts/old-acserver.json
+tmp
