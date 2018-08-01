@@ -4,3 +4,4 @@ pysqlite
 psycopg2
 netaddr
 pytz
+gunicorn
