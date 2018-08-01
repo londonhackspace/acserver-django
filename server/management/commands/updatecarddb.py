@@ -13,7 +13,7 @@ def PrintFrame():
                                             # 1 represents line at caller
   frame = callerframerecord[0]
   info = inspect.getframeinfo(frame)
-  print "%s:%s, %d" % (info.filename, info.function, info.lineno)
+  print("%s:%s, %d" % (info.filename, info.function, info.lineno))
 
 class Command(BaseCommand):
   args = '<path/to/carddb.json>'
@@ -51,11 +51,11 @@ class Command(BaseCommand):
               if len(c) <= 14:
                 eu.card_set.add(Card(card_id=c))
               else:
-                print u"for %s, card id %s is too long" % (eu, c)
+                print("for %s, card id %s is too long" % (eu, c))
             except DataError as e:
-              print u
-              print e
-              print u"error adding new card for %s, card too long? %s" % (eu, c)
+              print(u)
+              print(e)
+              print("error adding new card for %s, card too long? %s" % (eu, c))
         eu.save()
       else:
         with transaction.atomic():
@@ -63,9 +63,9 @@ class Command(BaseCommand):
           try:
             nu.save()
           except Exception as e:
-            print "blah."
-            print e, type(e)
-            print u
+            print("blah.")
+            print(e, type(e))
+            print(u)
           for c in u['cards']:
             try:
               # the card already exist?
@@ -73,36 +73,36 @@ class Command(BaseCommand):
               # bother, it does.
               # Which of the 2 users is subscribed?
               if not u['subscribed']:
-                print "skipping card %s, it's already in the db and this user is not subscribed" % (c,)
+                print("skipping card %s, it's already in the db and this user is not subscribed" % (c,))
                 continue
               else:
                 # darn, maybe the other user is not subscribed?
                 if not ec.user.subscribed:
-                  print "card %s is already in the db for %s, but they are not subscribed so i'm deleting the card" % (c, ec.user)
+                  print("card %s is already in the db for %s, but they are not subscribed so i'm deleting the card" % (c, ec.user))
                   ec.delete()
                 else:
-                  print "panic: card id %s is in use by 2 users: %s and %s" % (c, ec.user, nu)
+                  print("panic: card id %s is in use by 2 users: %s and %s" % (c, ec.user, nu))
             except ObjectDoesNotExist:
               pass
             except Exception as e:
-              print u
-              print "lol wtf", e
+              print(u)
+              print("lol wtf", e)
             try:
               if len(c) <= 14:
                 nu.card_set.add(Card(card_id=c))
               else:
-                print u"for %s, card id %s is too long" % (nu, c)
+                print("for %s, card id %s is too long" % (nu, c))
             except Exception as e:
-              print e, type(e)
+              print(e, type(e))
               PrintFrame()
-              print u
-              print nu
+              print(u)
+              print(nu)
               continue
           try:
             nu.save()
           except Exception as e:
-            print e, type(e)
+            print(e, type(e))
             PrintFrame()
-            print u
-            print nu
+            print(u)
+            print(nu)
     fh.close()

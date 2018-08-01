@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.admin import UserAdmin as DJUserAdmin
 from django.contrib.auth.models import User as DJUser
 
-from models import Tool, User, Card, Permission, Log, DJACUser
+from .models import Tool, User, Card, Permission, Log, DJACUser
 
 import logging
 

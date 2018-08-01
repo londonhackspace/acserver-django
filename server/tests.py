@@ -65,50 +65,50 @@ class ToolTests(TestCase):
     client = Client()
     resp = client.get('/%d/status/' % 1)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_online_tool_does_not_exist(self):
     # test with an unknown tool_id
     client = Client()
     resp = client.get('/%d/status/' % 123)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '-1')
+    self.assertEqual(resp.content, b'-1')
 
   def test_card_not_exists(self):
     client = Client()
     resp = client.get('/1/card/%s' % self.user_does_not_exist)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '-1')
+    self.assertEqual(resp.content, b'-1')
 
   def test_user(self):
     client = Client()
     resp = client.get('/1/card/%s' % self.user2)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_user_exists_and_not_user(self):
     client = Client()
     resp = client.get('/1/card/%s' % self.user3)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_user_and_not_subscribed(self):
     client = Client()
     resp = client.get('/1/card/%s' % self.user4)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '-1')
+    self.assertEqual(resp.content, b'-1')
 
   def test_maintainer(self):
     client = Client()
     resp = client.get('/1/card/%s' % self.user1a)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '2')
+    self.assertEqual(resp.content, b'2')
 
   def test_maintainer_multi_cards(self):
     client = Client()
     resp = client.get('/1/card/%s' % self.user1b)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '2')
+    self.assertEqual(resp.content, b'2')
 
   def test_adduser(self):
     client = Client()
@@ -116,12 +116,12 @@ class ToolTests(TestCase):
     # now the maintainer gives user id 3 permission to use the tool
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     # and now they can use the tool
     resp = client.get('/1/card/%s' % self.user3)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_add_unknown(self):
     # maintainer add unknown card
@@ -129,7 +129,7 @@ class ToolTests(TestCase):
 
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user_does_not_exist, self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_add_tool_does_not_exist(self):
     # add a card to a tool that does not exist
@@ -137,7 +137,7 @@ class ToolTests(TestCase):
 
     resp = client.post('/42/grant-to-card/%s/by-card/%s' % (self.user3, self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '-1')
+    self.assertEqual(resp.content, b'-1')
 
   def test_add_permission_exists(self):
     # add a user to a tool that that user is already a user on.
@@ -145,7 +145,7 @@ class ToolTests(TestCase):
 
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user2, self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_add_unsubscribed(self):
     # maintainer adds known, unsubscribed card
@@ -153,7 +153,7 @@ class ToolTests(TestCase):
 
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user4, self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_non_maintainer_add(self):
     # know user tries to add a card
@@ -161,7 +161,7 @@ class ToolTests(TestCase):
 
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user2))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_unknown_user_adds_a_card(self):
     # unknown user tries to add a card
@@ -169,7 +169,7 @@ class ToolTests(TestCase):
 
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user_does_not_exist))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_noperms_user_adds_a_card(self):
     # known user with no perms for this tool tries to add a card
@@ -177,52 +177,52 @@ class ToolTests(TestCase):
 
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user3))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_unsubscribed_maintainer_adds_a_card(self):
     client = Client()
 
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user4))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_user_already_has_perms(self):
     client = Client()
 
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user2, self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_using_acnode(self):
     client = Client()
 
     resp = client.post('/1/tooluse/1/%s' % (self.user2))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     # and stop after 5 seconds
     time.sleep(5)
     resp = client.post('/1/tooluse/time/for/%s/%d' % (self.user2, 5))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     resp = client.post('/1/tooluse/0/%s' % (self.user2))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_toolusetime_tool_does_not_exist(self):
     client = Client()
 
     resp = client.post('/42/tooluse/time/for/%s/%d' % (self.user2, 5))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '-1')
+    self.assertEqual(resp.content, b'-1')
 
   def test_toolusetime_user_does_not_exist(self):
     client = Client()
 
     resp = client.post('/1/tooluse/time/for/%s/%d' % (self.user_does_not_exist, 5))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_tooluse_user_does_not_exist(self):
     client = Client()
@@ -230,42 +230,42 @@ class ToolTests(TestCase):
     # card does not exist
     resp = client.post('/1/tooluse/1/%s' % (self.user_does_not_exist))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_tooluse_tool_does_not_exist(self):
     client = Client()
     # tool does not exist
     resp = client.post('/42/tooluse/1/%s' % (self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '-1')
+    self.assertEqual(resp.content, b'-1')
 
   def test_set_offline(self):
     # take the tool offline
     client = Client()
     resp = client.post('/1/status/0/by/%s' % (self.user2))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_unknown_set_offline(self):
     # only known users can take a tool offline
     client = Client()
     resp = client.post('/1/status/0/by/%s' % (self.user_does_not_exist))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_not_user_set_offline(self):
     # known but not a user
     client = Client()
     resp = client.post('/1/status/0/by/%s' % (self.user3))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_set_offline_tool_does_not_exists(self):
     # set an unknown tool offline
     client = Client()
     resp = client.post('/42/status/0/by/%s' % (self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '-1')
+    self.assertEqual(resp.content, b'-1')
 
   def test_set_offline_and_online(self):
     # set a tool offline and then back online
@@ -273,11 +273,11 @@ class ToolTests(TestCase):
 
     resp = client.post('/1/status/0/by/%s' % (self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     resp = client.post('/1/status/1/by/%s' % (self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
   def test_new_user_put_offline(self):
     client = Client()
@@ -285,22 +285,22 @@ class ToolTests(TestCase):
     # let them use the tool
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     # check that they can use it
     resp = client.get('/1/card/%s' % self.user3)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     # and take the tool out of service
     resp = client.post('/1/status/0/by/%s' % (self.user3))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     # and we should be out of service now
     resp = client.get('/%d/status/' % 1)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_non_maintainer_set_online(self):
     client = Client()
@@ -308,19 +308,19 @@ class ToolTests(TestCase):
     # take the tool offline
     resp = client.post('/1/status/0/by/%s' % (self.user2))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     # non maintainer putting online
     resp = client.post('/1/status/1/by/%s' % (self.user2))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '0')
+    self.assertEqual(resp.content, b'0')
 
   def test_error(self):
     # this test fails atm, it's not a big deal tho.
     client = Client()
     resp = client.get('/42/card/%s' % '00000000')
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '-1')
+    self.assertEqual(resp.content, b'-1')
 
   def test_toolisinuse(self):
     # not called by the acnodes, but by things monitoring them.
@@ -329,11 +329,11 @@ class ToolTests(TestCase):
     # start using the tool
     resp = client.post('/1/tooluse/1/%s' % (self.user2))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     resp = client.get('/%d/is_tool_in_use' % (1,))
     self.assertEqual(resp.status_code, 200)
-    self.failUnless(resp.content == "yes")
+    self.failUnless(resp.content == b'yes')
 
     # if the tool starts and stops in the same second then this fails
     time.sleep(1)
@@ -341,12 +341,12 @@ class ToolTests(TestCase):
     # and stop
     resp = client.post('/1/tooluse/0/%s' % (self.user2))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     resp = client.get('/%d/is_tool_in_use' % (1,))
     self.assertEqual(resp.status_code, 200)
     # this fails if the tool is used for less than a second actual bug?
-    self.failUnless(resp.content == "no")
+    self.failUnless(resp.content == b'no')
 
   def test_nonexistant_tool_in_use(self):
     client = Client()
@@ -354,7 +354,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
 
     # tool does not exist
-    self.failUnless(resp.content == "-1")
+    self.failUnless(resp.content == b'-1')
 
   # apikey tests
   # API-KEY: 'KEY GOES HERE'
@@ -365,7 +365,7 @@ class ToolTests(TestCase):
     # "/api/get_tools_summary_for_user/%d" % (2)
     resp = client.get('/api/get_tools_summary_for_user/%d' % (1,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
-    ret = json.loads(resp.content)
+    ret = json.loads(resp.content.decode("utf-8"))
     self.failUnless(ret[0]['permission'] == 'maintainer')
 
   def test_get_tools_summary_for_user_toolstuff(self):
@@ -374,7 +374,7 @@ class ToolTests(TestCase):
     # "/api/get_tools_summary_for_user/%d" % (2)
     resp = client.get('/api/get_tools_summary_for_user/%d' % (1,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
-    ret = json.loads(resp.content)
+    ret = json.loads(resp.content.decode("utf-8"))
     self.failUnless(ret[0]['permission'] == 'maintainer')
     self.failUnless(ret[0]['status'] == 'Operational')
     self.failUnless(ret[0]['status_message'] == 'working ok')
@@ -387,7 +387,7 @@ class ToolTests(TestCase):
     # "/api/get_tools_summary_for_user/%d" % (2)
     resp = client.get('/api/get_tools_summary_for_user/%d' % (42,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
-    ret = json.loads(resp.content)
+    ret = json.loads(resp.content.decode("utf-8"))
     self.failUnless(ret[0]['permission'] == 'unauthorised')
     self.failUnless(ret[1]['permission'] == 'unauthorised')
 
@@ -398,23 +398,23 @@ class ToolTests(TestCase):
 
     resp = client.get('/api/get_tools_summary_for_user/%d' % (3,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
-    ret = json.loads(resp.content)
+    ret = json.loads(resp.content.decode("utf-8"))
     self.failUnless(ret[0]['permission'] == 'unauthorised')
 
     # add user 3 as a user
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user1a))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     # and now they can use the tool
     resp = client.get('/1/card/%s' % self.user3)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(resp.content, '1')
+    self.assertEqual(resp.content, b'1')
 
     # now check they can use the tool
     resp = client.get('/api/get_tools_summary_for_user/%d' % (3,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
-    ret = json.loads(resp.content)
+    ret = json.loads(resp.content.decode("utf-8"))
     self.failUnless(ret[0]['permission'] == 'user')
 
   def test_get_tools_summary_for_user_wrong_api_key(self):
@@ -423,7 +423,7 @@ class ToolTests(TestCase):
 
     resp = client.get('/api/get_tools_summary_for_user/%d' % (42,), HTTP_API_KEY='udlrabss')
     self.assertEqual(resp.status_code, 401)
-    self.failUnless(resp.content.startswith('HTTP Error 401'))
+    self.failUnless(resp.content.startswith(b'HTTP Error 401'))
 
   def test_get_tools_summary_for_user_no_api_key(self):
     # get_tools_summary_for_user with wrong api key
@@ -431,7 +431,7 @@ class ToolTests(TestCase):
 
     resp = client.get('/api/get_tools_summary_for_user/%d' % (42,))
     self.assertEqual(resp.status_code, 401)
-    self.failUnless(resp.content.startswith('API Key required'))
+    self.failUnless(resp.content.startswith(b'API Key required'))
 
   def test_get_tools_status(self):
     # get_tools_status basic test
@@ -439,7 +439,7 @@ class ToolTests(TestCase):
 
     resp = client.get('/api/get_tools_status', HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
-    ret = json.loads(resp.content)
+    ret = json.loads(resp.content.decode("utf-8"))
     self.failUnless(ret[0]['name'] == 'test_tool')
 
   def test_get_tools_status_multiple_tools(self):
@@ -458,7 +458,7 @@ class ToolTests(TestCase):
 
     resp = client.get('/api/get_tools_status', HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
-    ret = json.loads(resp.content)
+    ret = json.loads(resp.content.decode("utf-8"))
 #    print ret
     self.failUnless(len(ret) == 3)
 
@@ -543,27 +543,27 @@ class SecretTests(TestCase):
 
   def test_start(self):
     # card exists and is a user for this tool
-    self.failUnless(self.querycard(self.user3) == '1')
+    self.failUnless(self.querycard(self.user3) == b'1')
     # this card does not exist yet
-    self.failUnless(self.querycard(self.user3a) == '-1')
+    self.failUnless(self.querycard(self.user3a) == b'-1')
 
     # card exists and is a user for this tool
-    self.failUnless(self.query_secret(self.user3) == '1')
+    self.failUnless(self.query_secret(self.user3) == b'1')
     # this card does not exist yet
-    self.failUnless(self.query_secret(self.user3a) == '-1')
+    self.failUnless(self.query_secret(self.user3a) == b'-1')
 
   def test_node_missing_secret(self):
     # card exists and is a user for this tool
     # but the secret is missing now so it will fail
-    self.failUnless(self.querycard(self.user3, tool=2) == '0')
+    self.failUnless(self.querycard(self.user3, tool=2) == b'0')
 
   def test_Server_missing_secret(self):
     # we are sending an unexpected secret. the server should accept it (and log it)
-    self.failUnless(self.querycard(self.user3, secret='abcdefgh') == '1')
+    self.failUnless(self.querycard(self.user3, secret='abcdefgh') == b'1')
 
   def test_wrong_secret(self):
     # we are sending the wrong secret, so should be refused
-    self.failUnless(self.querycard(self.user3, tool=2, secret='abcdefgh') == '0')
+    self.failUnless(self.querycard(self.user3, tool=2, secret='abcdefgh') == b'0')
 
 class CheckIpTests(TestCase):
   def setUp(self):
@@ -583,7 +583,7 @@ class CheckIpTests(TestCase):
       client = Client()
       resp = client.get('/1/card/%s' % ('12345678',))
       self.assertEqual(resp.status_code, 403)
-      self.assertEqual(resp.content, "IP forbidden\n")
+      self.assertEqual(resp.content, b"IP forbidden\n")
 
 # updatecarddb tests
 class DbUpdateTests(TestCase):
@@ -612,51 +612,51 @@ class DbUpdateTests(TestCase):
     client = Client()
 
     ret = self.querycard(self.user3)
-    self.assertEqual(ret, '1')
+    self.assertEqual(ret, b'1')
 
     ret = self.querycard(self.user3a)
-    self.assertEqual(ret, '-1')
+    self.assertEqual(ret, b'-1')
 
   def test_cardb_updates(self):
     # this card does not exist yet
-    self.failUnless(self.querycard(self.user3a) == '-1')
+    self.failUnless(self.querycard(self.user3a) == b'-1')
     self.update_carddb("1_card_added_carddb.json")
 
     # should exist now
-    self.failUnless(self.querycard(self.user3a) == '1')
+    self.failUnless(self.querycard(self.user3a) == b'1')
     self.update_carddb("2_card_removed_carddb.json")
 
     # and now it's gone
-    self.failUnless(self.querycard(self.user3a) == '-1')
+    self.failUnless(self.querycard(self.user3a) == b'-1')
 
     # user3 should be ok
-    self.failUnless(self.querycard(self.user3) == '1')
+    self.failUnless(self.querycard(self.user3) == b'1')
 
     # un subscribe them
     self.update_carddb("3_user_unsubscribed_carddb.json")
     # and now they don't work
-    self.failUnless(self.querycard(self.user3) == '-1')
+    self.failUnless(self.querycard(self.user3) == b'-1')
 
     # re-subscribe them
     self.update_carddb("4_user_subscribed_carddb.json")
     # and now they should work
-    self.failUnless(self.querycard(self.user3) == '1')
+    self.failUnless(self.querycard(self.user3) == b'1')
 
   def test_empty_carddb(self):
     # it's possible things could bug out and give us an empty carddb
     # don't nuke all the users if thats the case.
     ret = self.querycard(self.user3)
-    self.assertEqual(ret, '1')
+    self.assertEqual(ret, b'1')
 
     self.update_carddb("empty_carddb.json")
 
     # this works by accident, we don't specificly test for it.
     ret = self.querycard(self.user3)
-    self.assertEqual(ret, '1')
+    self.assertEqual(ret, b'1')
 
   def test_unicode_carddb(self):
     ret = self.querycard(self.user3)
-    self.assertEqual(ret, '1')
+    self.assertEqual(ret, b'1')
 
     # this should fail with an encoding error:
     #
@@ -670,7 +670,7 @@ class DbUpdateTests(TestCase):
 
   def test_unicode_carddb_twice(self):
     ret = self.querycard(self.user3)
-    self.assertEqual(ret, '1')
+    self.assertEqual(ret, b'1')
 
     # this should fail with an encoding error:
     #

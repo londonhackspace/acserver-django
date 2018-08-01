@@ -57,10 +57,16 @@ WSGI_APPLICATION = 'acserver.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
+#
+# postgres is nice.
+#
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'acserver',
+            'USER': 'jasper',
+    #        'PASSWORD': 'secret123',
+            'HOST': '',  #localhost
     }
 }
 
@@ -102,12 +108,12 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers':['console', 'file'],
+            'handlers':['console'],
             'propagate': True,
             'level':'INFO',
         },
         'acserver': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
     }
@@ -126,4 +132,5 @@ ACNODE_IP_RANGE = '0.0.0.0/0'
 try:
     from acserver.local_settings import *
 except ImportError as e:
+    print(e)
     pass

@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.decorators import available_attrs
 from django.db.models import Sum
 
-from models import Tool, Card, User, Permission, ToolUseTime, Log
+from .models import Tool, Card, User, Permission, ToolUseTime, Log
 
 import json, logging, datetime
 from netaddr import IPAddress, IPNetwork
@@ -22,7 +22,7 @@ def check_secret(func):
     def inner(request, *args, **kwargs):
       try:
         tool = Tool.objects.get(pk=kwargs['tool_id'])
-      except ObjectDoesNotExist, e:
+      except ObjectDoesNotExist as e:
         return func(request, *args, **kwargs)
       if tool.secret != None and tool.secret != "":
         if 'HTTP_X_AC_KEY' not in request.META:
@@ -77,7 +77,7 @@ def check_ip(func):
 def status(request, tool_id):
   try:
     t = Tool.objects.get(pk=tool_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('-1', content_type='text/plain')
 
   return HttpResponse(str(t.status), content_type='text/plain')
@@ -89,17 +89,17 @@ def card(request, tool_id, card_id):
 
   try:
     t = Tool.objects.get(pk=tool_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('-1', content_type='text/plain')
 
   try:
     c = Card.objects.get(card_id=card_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('-1', content_type='text/plain')
 
   try:
     perm = c.user.permission_set.get(tool=t).permission
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     perm = 0
 
   if not c.user.subscribed:
@@ -115,24 +115,24 @@ def card(request, tool_id, card_id):
 def granttocard(request, tool_id, to_cardid, by_cardid):
   try:
     t = Tool.objects.get(pk=tool_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('-1', content_type='text/plain')
 
   try:
     bc = Card.objects.get(card_id=by_cardid)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('0', content_type='text/plain')
 
   try:
     tc = Card.objects.get(card_id=to_cardid)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('0', content_type='text/plain')
 
   try:
     bcp = bc.user.permission_set.get(tool=t).get_permission_display()
     if bcp != 'maintainer':
       return HttpResponse(str(0), content_type='text/plain')
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse(str(0), content_type='text/plain')
 
   if not tc.user.subscribed:
@@ -148,7 +148,7 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
     p = Permission.objects.get(user=tc.user, tool=t)
     # if so just report success.
     return HttpResponse(str(1), content_type='text/plain')
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     pass
 
   np = Permission(user=tc.user, permission=1, tool=t, addedby=bc.user)
@@ -163,12 +163,12 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
 def settoolstatus(request, tool_id, status, card_id):
   try:
     t = Tool.objects.get(pk=tool_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('-1', content_type='text/plain')
 
   try:
     c = Card.objects.get(card_id=card_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('0', content_type='text/plain')
 
   status = int(status)
@@ -198,12 +198,12 @@ def settoolstatus(request, tool_id, status, card_id):
 def settooluse(request, tool_id, status, card_id):
   try:
     t = Tool.objects.get(pk=tool_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('-1', content_type='text/plain')
 
   try:
     c = Card.objects.get(card_id=card_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('0', content_type='text/plain')
   
   status = int(status)
@@ -227,7 +227,7 @@ def settooluse(request, tool_id, status, card_id):
 def isinuse(request, tool_id):
   try:
     t = Tool.objects.get(pk=tool_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('-1', content_type='text/plain')
 
   if t.inuse:
@@ -242,12 +242,12 @@ def isinuse(request, tool_id):
 def settoolusetime(request, tool_id, card_id, duration):
   try:
     t = Tool.objects.get(pk=tool_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('-1', content_type='text/plain')
 
   try:
     c = Card.objects.get(card_id=card_id)
-  except ObjectDoesNotExist, e:
+  except ObjectDoesNotExist as e:
     return HttpResponse('0', content_type='text/plain')
 
   # should we check that the user has permissions?

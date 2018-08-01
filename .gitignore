@@ -10,3 +10,4 @@ carddb.json
 migration-scripts/mysql_password
 migration-scripts/old-acserver.json
 tmp
+venv

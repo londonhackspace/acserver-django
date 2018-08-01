@@ -45,6 +45,7 @@ class User(models.Model):
   class Meta:
     unique_together = (("id", "name"),)
     verbose_name = 'ACNode User'
+    ordering = ['id']
 
 # tool
 class Tool(models.Model):
@@ -130,7 +131,7 @@ class Log(models.Model):
 class DJACUser(DJUser):
   class Meta:
     proxy = True
-    app_label = 'auth'
+#    app_label = 'auth'
     verbose_name = 'User'
 
   def __getattribute__(self, name):
@@ -139,7 +140,7 @@ class DJACUser(DJUser):
     if name == 'is_staff':
       try:
         acu = User.objects.get(pk=self.id)
-      except Exception, e:
+      except Exception as e:
         # XXX ObjectDoesNotExist if it's not an acnode user.
         # should never happen on the live server(?)
         logger.critical('exception in DJACUser __getattribute__ %s', e)

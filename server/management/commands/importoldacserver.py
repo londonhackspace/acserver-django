@@ -25,7 +25,7 @@ class Command(BaseCommand):
     if len(args) == 2:
       try:
         onlytool = int(args[1])
-      except Exception, e:
+      except Exception as e:
         raise CommandError('not a tool id? %s : %s' % (args[1], e))
 
     fh = open(path, 'r')
@@ -59,10 +59,10 @@ class Command(BaseCommand):
       if p['added_by_user_id'] == None:
         # no user added this permission :/
         # lets just use user 1 (Russ), it's as good as any
-        print "Warning: no added_by for permission %s, using user id 1" % (str(p))
+        print("Warning: no added_by for permission %s, using user id 1" % (str(p)))
         added_by = 1
       elif p['added_by_user_id'] == 0:
-        print "Warning: added_by for permission %s was 0, using user id 1" % (str(p))
+        print("Warning: added_by for permission %s was 0, using user id 1" % (str(p)))
         added_by = 1
       else:
         added_by = p['added_by_user_id']
@@ -82,16 +82,16 @@ class Command(BaseCommand):
         # ok, a permission already exists.
         # check in case it's been changed
         if ep.permission != int(p['permission']):
-          print "permission changed!"
-          print ep
-          print p
+          print("permission changed!")
+          print(ep)
+          print(p)
           ep.permission = int(p['permission'])
           ep.addedby = User.objects.get(pk=check_added_by(p))
           date = datetime.datetime.strptime(p['added_on'], format)
           ep.date = gmt.localize(date)
           ep.save()
         continue
-      except ObjectDoesNotExist, e:
+      except ObjectDoesNotExist as e:
         # fine if it's not already in there.
         pass
       try:
@@ -109,9 +109,9 @@ class Command(BaseCommand):
           date = date
           )
         perm.save()
-      except ObjectDoesNotExist, e:
-        print p
-        print 'Warning: User (or possibly a tool) does not exist, did you import the carddb first? (%s)' % (e)      
+      except ObjectDoesNotExist as e:
+        print(p)
+        print('Warning: User (or possibly a tool) does not exist, did you import the carddb first? (%s)' % (e))      
 #        raise CommandError()
 
     for l in logs:
@@ -127,7 +127,7 @@ class Command(BaseCommand):
                 date=date,
                 message=l['logged_event'], time=l['time'])
         l.save()
-      except ObjectDoesNotExist, e:
-        print "failed to add log line: %s" % (l)
+      except ObjectDoesNotExist as e:
+        print("failed to add log line: %s" % (l))
 
     fh.close()
