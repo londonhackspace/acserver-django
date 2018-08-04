@@ -16,6 +16,17 @@ from pytz import timezone
 
 logger = logging.getLogger('django.request')
 
+# try different ways of getting the remote ip.
+def get_ip(request):
+  ip = None
+  if request.META.get('REMOTE_ADDR') != '':
+    ip = request.META.get('REMOTE_ADDR')
+  elif 'HTTP_X_REAL_IP' in request.META:
+    ip = request.META.get('HTTP_X_REAL_IP')
+  elif 'HTTP_X_FORWARDED_FOR' in request.META:
+    ip = request.META.get('HTTP_X_FORWARDED_FOR')
+  return ip
+
 def check_secret(func):
   def _decorator(func):
     @wraps(func, assigned=available_attrs(func))
@@ -24,11 +35,12 @@ def check_secret(func):
         tool = Tool.objects.get(pk=kwargs['tool_id'])
       except ObjectDoesNotExist as e:
         return func(request, *args, **kwargs)
+      ip = get_ip(request)
       if tool.secret != None and tool.secret != "":
         if 'HTTP_X_AC_KEY' not in request.META:
           # the tool has a secret, but it's wasn't sent
           # so just fail it.
-          logger.critical('Missing secret key for tool %d // %s from %s', tool.id, request.path, request.META['REMOTE_ADDR'],
+          logger.critical('Missing secret key for tool %d // %s from %s', tool.id, request.path, ip,
                     extra={
                         'status_code': 200,
                         'request': request
@@ -37,7 +49,7 @@ def check_secret(func):
           return HttpResponse('0', content_type='text/plain')
 
         if tool.secret != request.META['HTTP_X_AC_KEY']:
-          logger.critical('Wrong secret key for tool %d // %s from %s', tool.id, request.path, request.META['REMOTE_ADDR'],
+          logger.critical('Wrong secret key for tool %d // %s from %s', tool.id, request.path, ip,
                     extra={
                         'status_code': 200,
                         'request': request
@@ -47,7 +59,7 @@ def check_secret(func):
       else:
         if 'HTTP_X_AC_KEY' in request.META:
           # N.B. this allows acnodes to send a secret if we don't have one.
-          logger.warning('tool %d sent a secret key, but we don\'t have one for it! // %s from %s', tool.id, request.path, request.META['REMOTE_ADDR'],
+          logger.warning('tool %d sent a secret key, but we don\'t have one for it! // %s from %s', tool.id, request.path, ip,
                     extra={
                         'status_code': 200,
                         'request': request
@@ -61,14 +73,8 @@ def check_ip(func):
   def _decorator(func):
     @wraps(func, assigned=available_attrs(func))
     def inner(request, *args, **kwargs):
-      ip = ''
-      if request.META.get('REMOTE_ADDR') != '':
-        ip = request.META.get('REMOTE_ADDR')
-      elif 'HTTP_X_REAL_IP' in request.META:
-        ip = request.META.get('HTTP_X_REAL_IP')
-      elif 'HTTP_X_FORWARDED_FOR' in request.META:
-        ip = request.META.get('HTTP_X_FORWARDED_FOR')
-      else:
+      ip = get_ip(request)
+      if ip == None:
         logger.critical("unable to get remote ip", extra={
             'status_code': 403,
             'request': request
@@ -99,15 +105,27 @@ def status(request, tool_id):
 @check_ip
 @require_GET
 def card(request, tool_id, card_id):
-
+  ip = get_ip(request)
   try:
     t = Tool.objects.get(pk=tool_id)
   except ObjectDoesNotExist as e:
+    logger.warning('Tool does not exist for %s // %s from %s', request.method, request.path, ip,
+                extra={
+                    'status_code': 200,
+                    'request': request
+                }
+            )
     return HttpResponse('-1', content_type='text/plain')
 
   try:
     c = Card.objects.get(card_id=card_id)
   except ObjectDoesNotExist as e:
+    logger.warning('Card does not exist for %s // %s from %s', request.method, request.path, ip,
+                extra={
+                    'status_code': 200,
+                    'request': request
+                }
+            )
     return HttpResponse('-1', content_type='text/plain')
 
   try:
@@ -116,6 +134,12 @@ def card(request, tool_id, card_id):
     perm = 0
 
   if not c.user.subscribed:
+    logger.warning('user is not subscribed for %s // %s from %s', request.method, request.path, ip,
+                extra={
+                    'status_code': 200,
+                    'request': request
+                }
+            )
     # log unsubscribed user tried to use tool.
     perm = -1
 
@@ -284,8 +308,9 @@ def require_api_key(func):
   def _decorator(func):
     @wraps(func, assigned=available_attrs(func))
     def inner(request, *args, **kwargs):
+      ip = get_ip(request)
       if 'HTTP_API_KEY' not in request.META:
-        logger.warning('Missing API key for %s // %s from %s', request.method, request.path, request.META['REMOTE_ADDR'],
+        logger.warning('Missing API key for %s // %s from %s', request.method, request.path, ip,
                     extra={
                         'status_code': 401,
                         'request': request
@@ -293,7 +318,7 @@ def require_api_key(func):
                 )
         return HttpResponseUnauthorized("API Key required")
       if request.META['HTTP_API_KEY'] != settings.ACS_API_KEY:
-        logger.warning('wrong API key: %s for %s // %s from %s', request.META['HTTP_API_KEY'], request.method, request.path, request.META['REMOTE_ADDR'],
+        logger.warning('wrong API key: %s for %s // %s from %s', request.META['HTTP_API_KEY'], request.method, request.path, ip,
                     extra={
                         'status_code': 401,
                         'request': request
