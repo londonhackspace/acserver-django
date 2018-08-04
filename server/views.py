@@ -49,7 +49,7 @@ def check_secret(func):
           return HttpResponse('-1', content_type='text/plain')
 
         if tool.secret != request.META['HTTP_X_AC_KEY']:
-          logger.critical('Wrong secret key for tool %d // %s from %s', tool.id, request.path, ip,
+          logger.critical('Wrong secret key for tool %d // %s from %s, expected %s, got %s', tool.id, request.path, ip, tool.secret, request.META['HTTP_X_AC_KEY'],
                     extra={
                         'status_code': 200,
                         'request': request
