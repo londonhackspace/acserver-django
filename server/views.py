@@ -128,6 +128,7 @@ def card(request, tool_id, card_id):
             )
     return HttpResponse('-1', content_type='text/plain')
 
+  perm = -1
   try:
     perm = c.user.permission_set.get(tool=t).permission
   except ObjectDoesNotExist as e:
@@ -143,6 +144,13 @@ def card(request, tool_id, card_id):
     # log unsubscribed user tried to use tool.
     perm = -1
 
+
+  logger.info('returning perm %d for %s // %s from %s', perm, request.method, request.path, ip,
+              extra={
+                  'status_code': 200,
+                  'request': request
+              }
+          )
   return HttpResponse(str(perm), content_type='text/plain')
 
 @check_secret
