@@ -46,7 +46,7 @@ def check_secret(func):
                         'request': request
                     }
                 )
-          return HttpResponse('0', content_type='text/plain')
+          return HttpResponse('-1', content_type='text/plain')
 
         if tool.secret != request.META['HTTP_X_AC_KEY']:
           logger.critical('Wrong secret key for tool %d // %s from %s', tool.id, request.path, ip,
@@ -55,7 +55,7 @@ def check_secret(func):
                         'request': request
                     }
                 )
-          return HttpResponse('0', content_type='text/plain')
+          return HttpResponse('-1', content_type='text/plain')
       else:
         if 'HTTP_X_AC_KEY' in request.META:
           # N.B. this allows acnodes to send a secret if we don't have one.
