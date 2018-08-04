@@ -61,8 +61,21 @@ def check_ip(func):
   def _decorator(func):
     @wraps(func, assigned=available_attrs(func))
     def inner(request, *args, **kwargs):
-      if IPAddress(request.META['REMOTE_ADDR']) not in IPNetwork(settings.ACNODE_IP_RANGE):
-        logger.warning('invalid access attempt from %s', request.META['REMOTE_ADDR'],
+      ip = ''
+      if request.META.get('REMOTE_ADDR') != '':
+        ip = request.META.get('REMOTE_ADDR')
+      elif 'HTTP_X_REAL_IP' in request.META:
+        ip = request.META.get('HTTP_X_REAL_IP')
+      elif 'HTTP_X_FORWARDED_FOR' in request.META:
+        ip = request.META.get('HTTP_X_FORWARDED_FOR')
+      else:
+        logger.critical("unable to get remote ip", extra={
+            'status_code': 403,
+            'request': request
+        })
+        return HttpResponse('IP forbidden\n', status=403, content_type='text/plain')
+      if IPAddress(ip) not in IPNetwork(settings.ACNODE_IP_RANGE):
+        logger.warning('invalid access attempt from %s', ip,
                     extra={
                         'status_code': 403,
                         'request': request
@@ -188,7 +201,7 @@ def settoolstatus(request, tool_id, status, card_id):
   elif status == 1:
     l = Log(tool=t, user=c.user, message="Tool put into service")
     l.save()
-  
+
   return HttpResponse(str(1), content_type='text/plain')
 
 @check_secret
@@ -205,7 +218,7 @@ def settooluse(request, tool_id, status, card_id):
     c = Card.objects.get(card_id=card_id)
   except ObjectDoesNotExist as e:
     return HttpResponse('0', content_type='text/plain')
-  
+
   status = int(status)
   message = None
   if status == 1:
@@ -260,14 +273,14 @@ def settoolusetime(request, tool_id, card_id, duration):
 
   l = Log(tool=t, user=c.user, message="Tool used for %d seconds" % (int(duration),), time=int(duration))
   l.save()
-  
+
   return HttpResponse('1', content_type='text/plain')
 
 # api stuff from here.
 class HttpResponseUnauthorized(HttpResponse):
     status_code = 401
 
-def require_api_key(func):  
+def require_api_key(func):
   def _decorator(func):
     @wraps(func, assigned=available_attrs(func))
     def inner(request, *args, **kwargs):
@@ -383,12 +396,12 @@ def calheatmap1(request):
   import time
 
   diffs = timedelta(days = -1)
-  timenow = datetime.now() 
+  timenow = datetime.now()
   timethen = timenow + diffs
   yearthen = timethen.year
   daythen = timethen.day - 1
   monththen = timethen.month - 1
- 
+
   #logses = models.Log.objects.all()
   #lolz = logses[0].message
 
@@ -403,7 +416,7 @@ def calheatmap1(request):
   #epoch_time = int(time.time())
   #testdiff = timedelta(days = -10)
   #epochtest = epoch_time - testdiff.milliseconds
- 
+
   context = {"yearthen": yearthen, "monththen": monththen, "daythen": daythen, "loltest": 23456, "testjsonnumber": 1472100000, "logtimes": clogs, "loglen": clens }
 
   return render(request, 'server/calheatmaptest.html', context)
