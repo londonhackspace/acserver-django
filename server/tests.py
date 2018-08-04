@@ -555,7 +555,7 @@ class SecretTests(TestCase):
   def test_node_missing_secret(self):
     # card exists and is a user for this tool
     # but the secret is missing now so it will fail
-    self.failUnless(self.querycard(self.user3, tool=2) == b'0')
+    self.failUnless(self.querycard(self.user3, tool=2) == b'-1')
 
   def test_Server_missing_secret(self):
     # we are sending an unexpected secret. the server should accept it (and log it)
@@ -563,7 +563,7 @@ class SecretTests(TestCase):
 
   def test_wrong_secret(self):
     # we are sending the wrong secret, so should be refused
-    self.failUnless(self.querycard(self.user3, tool=2, secret='abcdefgh') == b'0')
+    self.failUnless(self.querycard(self.user3, tool=2, secret='abcdefgh') == b'-1')
 
 class CheckIpTests(TestCase):
   def setUp(self):
