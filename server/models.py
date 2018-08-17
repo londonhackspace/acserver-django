@@ -63,6 +63,10 @@ class Tool(models.Model):
   def __unicode__(self):
     return u"%s (id: %d)" % (self.name, self.id)
 
+  def __str__(self):
+    return self.__unicode__()
+
+
 class ToolUseTime(models.Model):
   tool = models.ForeignKey(Tool)
   inuseby = models.ForeignKey(User)
