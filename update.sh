@@ -3,7 +3,7 @@
 error=0
 log=`mktemp`
 touch $log
-tmp=/var/www/acserver-django/tmp
+tmp=/var/www/acserver/tmp
 
 function check_ret ()
 {
@@ -18,12 +18,17 @@ function check_ret ()
 	return 0
 }
 
+cd /var/www/acserver
+. ./venv/bin/activate
+
 wget https://london.hackspace.org.uk/carddb.php -O ${tmp}/carddb.json > $log 2>&1
 check_ret
-/var/www/acserver-django/manage.py updatecarddb ${tmp}/carddb.json > $log 2>&1
+
+/var/www/acserver/manage.py updatecarddb ${tmp}/carddb.json > $log 2>&1
 check_ret
+
 rm -f ${tmp}/carddb.json
-/var/www/acserver-django/manage.py syncldap > $log 2>&1
+/var/www/acserver/manage.py syncldap > $log 2>&1
 check_ret
 
 rm -f $log
