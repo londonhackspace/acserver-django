@@ -147,7 +147,7 @@ class DJACUser(DJUser):
       except Exception as e:
         # XXX ObjectDoesNotExist if it's not an acnode user.
         # should never happen on the live server(?)
-        logger.critical('exception in DJACUser __getattribute__ %s', e)
+        logger.critical('exception in DJACUser __getattribute__ for %s : %s', str(name), e)
         return parent
       if len(acu.permission_set.filter(permission=2).all()) > 0:
         return True
