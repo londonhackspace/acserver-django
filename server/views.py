@@ -27,6 +27,12 @@ def get_ip(request):
     ip = request.META.get('HTTP_X_FORWARDED_FOR')
   return ip
 
+def makeResponse(request, status):
+  # Allow ACNodes to request JSON updates if they want them
+  if 'HTTP_X_AC_JSON' in request.META:
+    return HttpResponse(json.dumps(status), content_type='application/json')
+  return HttpResponse(str(status['numeric_status']), content_type='text/plain')
+
 def check_secret(func):
   def _decorator(func):
     @wraps(func, assigned=available_attrs(func))
@@ -46,7 +52,8 @@ def check_secret(func):
                         'request': request
                     }
                 )
-          return HttpResponse('-1', content_type='text/plain')
+          result = { 'numeric_status' : -1, 'error' : 'Missing Secret'}
+          return makeResponse(request, result)
 
         if tool.secret != request.META['HTTP_X_AC_KEY']:
           logger.critical('Wrong secret key for tool %d // %s from %s, expected %s, got %s', tool.id, request.path, ip, tool.secret, request.META['HTTP_X_AC_KEY'],
@@ -55,7 +62,8 @@ def check_secret(func):
                         'request': request
                     }
                 )
-          return HttpResponse('-1', content_type='text/plain')
+          result = { 'numeric_status' : -1, 'error' : 'Incorrect Secret'}
+          return makeResponse(request, result)
       else:
         if 'HTTP_X_AC_KEY' in request.META:
           # N.B. this allows acnodes to send a secret if we don't have one.
@@ -97,9 +105,15 @@ def status(request, tool_id):
   try:
     t = Tool.objects.get(pk=tool_id)
   except ObjectDoesNotExist as e:
-    return HttpResponse('-1', content_type='text/plain')
+    result = { 'numeric_status' : -1, 'error' : 'Unknown Tool'}
+    return makeResponse(request, result)
 
-  return HttpResponse(str(t.status), content_type='text/plain')
+  result = {
+    'numeric_status' : t.status,
+    'status' : 'Operational' if t.status == 1 else 'Out of Service',
+    'status_message' : t.status_message,
+    }
+  return makeResponse(request, result)
 
 @check_secret
 @check_ip
@@ -115,7 +129,8 @@ def card(request, tool_id, card_id):
                     'request': request
                 }
             )
-    return HttpResponse('-1', content_type='text/plain')
+    result = { 'numeric_status' : -1, 'error' : 'Tool does Not Exist' }
+    return makeResponse(request, result)
 
   try:
     c = Card.objects.get(card_id=card_id)
@@ -126,13 +141,17 @@ def card(request, tool_id, card_id):
                     'request': request
                 }
             )
-    return HttpResponse('-1', content_type='text/plain')
+    result = { 'numeric_status' : -1, 'error' : 'Card does Not Exist' }
+    return makeResponse(request, result)
 
-  perm = -1
+  result = { 'numeric_status' : -1 }
+  perm_text = 'Unknown'
   try:
-    perm = c.user.permission_set.get(tool=t).permission
+    result['numeric_status'] = c.user.permission_set.get(tool=t).permission
+    perm_text = 'Maintainer' if result['numeric_status'] == 2 else 'User'
   except ObjectDoesNotExist as e:
-    perm = 0
+    result['numeric_status'] = 0
+    perm_text = 'Unauthorised'
 
   if not c.user.subscribed:
     logger.warning('user is not subscribed for %s // %s from %s', request.method, request.path, ip,
@@ -142,16 +161,26 @@ def card(request, tool_id, card_id):
                 }
             )
     # log unsubscribed user tried to use tool.
-    perm = -1
+    result['numeric_status'] = -1
+    perm_text = 'Not Subscribed'
+  else:
+    # For subscribed users, getting the name is useful for doorbot
+    result['user_name'] = c.user.name
 
 
-  logger.info('returning perm %d for %s // %s from %s', perm, request.method, request.path, ip,
+  logger.info('returning perm %d for %s // %s from %s', result['numeric_status'], 
+              request.method, request.path, ip,
               extra={
                   'status_code': 200,
                   'request': request
               }
           )
-  return HttpResponse(str(perm), content_type='text/plain')
+  if result['numeric_status'] <= 0:
+    result['error'] = perm_text
+  else:
+    result['permission'] = perm_text
+
+  return makeResponse(request, result)
 
 @check_secret
 @check_ip
@@ -161,45 +190,54 @@ def granttocard(request, tool_id, to_cardid, by_cardid):
   try:
     t = Tool.objects.get(pk=tool_id)
   except ObjectDoesNotExist as e:
-    return HttpResponse('-1', content_type='text/plain')
+    result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
+    return makeResponse(request, result)
 
   try:
     bc = Card.objects.get(card_id=by_cardid)
   except ObjectDoesNotExist as e:
-    return HttpResponse('0', content_type='text/plain')
+    result = { 'numeric_status' : 0, 'error' : 'By card does not exist'}
+    return makeResponse(request, result)
 
   try:
     tc = Card.objects.get(card_id=to_cardid)
   except ObjectDoesNotExist as e:
-    return HttpResponse('0', content_type='text/plain')
+    result = { 'numeric_status' : 0, 'error' : 'To card does not exist'}
+    return makeResponse(request, result)
 
   try:
     bcp = bc.user.permission_set.get(tool=t).get_permission_display()
     if bcp != 'maintainer':
-      return HttpResponse(str(0), content_type='text/plain')
+      result = { 'numeric_status' : 0, 'error' : 'By card is not a maintainer'}
+      return makeResponse(request, result)
   except ObjectDoesNotExist as e:
-    return HttpResponse(str(0), content_type='text/plain')
+    result = { 'numeric_status' : 0, 'error' : 'By card does not have permissions'}
+    return makeResponse(request, result)
 
   if not tc.user.subscribed:
     # needs to be subscribed to be a user
-    return HttpResponse(str(0), content_type='text/plain')
+    result = { 'numeric_status' : 0, 'error' : 'To card is not subscribed'}
+    return makeResponse(request, result)
 
   if not bc.user.subscribed:
     # needs to be subscribed to be a maintainer
-    return HttpResponse(str(0), content_type='text/plain')
+    result = { 'numeric_status' : 0, 'error' : 'By card is not subscribed'}
+    return makeResponse(request, result)
 
   try:
     # does the permission already exist?
     p = Permission.objects.get(user=tc.user, tool=t)
     # if so just report success.
-    return HttpResponse(str(1), content_type='text/plain')
+    result = { 'numeric_status' : 1, 'success' : 'Permission already exists'}
+    return makeResponse(request, result)
   except ObjectDoesNotExist as e:
     pass
 
   np = Permission(user=tc.user, permission=1, tool=t, addedby=bc.user)
   np.save()
 
-  return HttpResponse(str(1), content_type='text/plain')
+  result = { 'numeric_status' : 1, 'success' : 'Permission added'}
+  return makeResponse(request, result)
 
 @check_secret
 @check_ip
@@ -209,12 +247,14 @@ def settoolstatus(request, tool_id, status, card_id):
   try:
     t = Tool.objects.get(pk=tool_id)
   except ObjectDoesNotExist as e:
-    return HttpResponse('-1', content_type='text/plain')
+    result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
+    return makeResponse(request, result)
 
   try:
     c = Card.objects.get(card_id=card_id)
   except ObjectDoesNotExist as e:
-    return HttpResponse('0', content_type='text/plain')
+    result = { 'numeric_status' : 0, 'error' : 'Card does not exist'}
+    return makeResponse(request, result)
 
   status = int(status)
 
@@ -222,7 +262,8 @@ def settoolstatus(request, tool_id, status, card_id):
     # only maintainers can set a tool online
     cp = c.user.permission_set.get(tool=t).get_permission_display()
     if cp != 'maintainer':
-      return HttpResponse(str(0), content_type='text/plain')
+      result = { 'numeric_status' : 0, 'error' : 'Card is not a maintainer'}
+      return makeResponse(request, result)
 
   t.status = status
   t.save()
@@ -234,7 +275,8 @@ def settoolstatus(request, tool_id, status, card_id):
     l = Log(tool=t, user=c.user, message="Tool put into service")
     l.save()
 
-  return HttpResponse(str(1), content_type='text/plain')
+  result = { 'numeric_status' : 1, 'success' : 'Tool status updated'}
+  return makeResponse(request, result)
 
 @check_secret
 @check_ip
@@ -244,12 +286,14 @@ def settooluse(request, tool_id, status, card_id):
   try:
     t = Tool.objects.get(pk=tool_id)
   except ObjectDoesNotExist as e:
-    return HttpResponse('-1', content_type='text/plain')
+    result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
+    return makeResponse(request, result)
 
   try:
     c = Card.objects.get(card_id=card_id)
   except ObjectDoesNotExist as e:
-    return HttpResponse('0', content_type='text/plain')
+    result = { 'numeric_status' : 0, 'error' : 'Card does not exist'}
+    return makeResponse(request, result)
 
   status = int(status)
   message = None
@@ -265,7 +309,8 @@ def settooluse(request, tool_id, status, card_id):
   l = Log(tool=t, user=c.user, message=message)
   l.save()
 
-  return HttpResponse('1', content_type='text/plain')
+  result = { 'numeric_status' : 1, 'success' : 'Tool usage logged'}
+  return makeResponse(request, result)
 
 # used by other things?
 @require_GET
@@ -288,12 +333,14 @@ def settoolusetime(request, tool_id, card_id, duration):
   try:
     t = Tool.objects.get(pk=tool_id)
   except ObjectDoesNotExist as e:
-    return HttpResponse('-1', content_type='text/plain')
+    result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
+    return makeResponse(request, result)
 
   try:
     c = Card.objects.get(card_id=card_id)
   except ObjectDoesNotExist as e:
-    return HttpResponse('0', content_type='text/plain')
+    result = { 'numeric_status' : 0, 'error' : 'Card does not exist'}
+    return makeResponse(request, result)
 
   # should we check that the user has permissions?
   # we could be in a situation where someone is using a tool
@@ -306,7 +353,8 @@ def settoolusetime(request, tool_id, card_id, duration):
   l = Log(tool=t, user=c.user, message="Tool used for %d seconds" % (int(duration),), time=int(duration))
   l.save()
 
-  return HttpResponse('1', content_type='text/plain')
+  result = { 'numeric_status' : 1, 'success' : 'Tool usage logged'}
+  return makeResponse(request, result)
 
 # api stuff from here.
 class HttpResponseUnauthorized(HttpResponse):
