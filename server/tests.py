@@ -356,6 +356,118 @@ class ToolTests(TestCase):
     # tool does not exist
     self.failUnless(resp.content == b'-1')
 
+  # a subset of the above tests, but JSON-ified
+  # Once JSON becomes the primary format, the above tests
+  # should be updated instead
+  def test_online_json(self):
+    # should be online now
+    client = Client()
+    resp = client.get('/%d/status/' % 1, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 1)
+    self.failUnless('error' not in ret)
+
+  def test_online_tool_does_not_exist_json(self):
+    # test with an unknown tool_id
+    client = Client()
+    resp = client.get('/%d/status/' % 123, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], -1)
+    self.failUnless('error' in ret)
+
+  def test_card_not_exists_json(self):
+    client = Client()
+    resp = client.get('/1/card/%s' % self.user_does_not_exist, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], -1)
+    self.failUnless('error' in ret)
+
+  def test_user_json(self):
+    client = Client()
+    resp = client.get('/1/card/%s' % self.user2, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 1)
+    self.failUnless('error' not in ret)
+
+  def test_user_exists_and_not_user_json(self):
+    client = Client()
+    resp = client.get('/1/card/%s' % self.user3, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 0)
+    self.failUnless('error' in ret)
+
+  def test_user_and_not_subscribed_json(self):
+    client = Client()
+    resp = client.get('/1/card/%s' % self.user4, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], -1)
+    self.failUnless('error' in ret)
+
+  def test_maintainer_json(self):
+    client = Client()
+    resp = client.get('/1/card/%s' % self.user1a, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 2)
+    self.failUnless('error' not in ret)
+
+  def test_maintainer_multi_cards_json(self):
+    client = Client()
+    resp = client.get('/1/card/%s' % self.user1b, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 2)
+    self.failUnless('error' not in ret)
+
+  def test_adduser_json(self):
+    client = Client()
+
+    # now the maintainer gives user id 3 permission to use the tool
+    resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user1a), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 1)
+    self.failUnless('error' not in ret)
+
+    # and now they can use the tool
+    resp = client.get('/1/card/%s' % self.user3, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 1)
+    self.failUnless('error' not in ret)
+
+  def test_set_offline_json(self):
+    # take the tool offline
+    client = Client()
+    resp = client.post('/1/status/0/by/%s' % (self.user2), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 1)
+    self.failUnless('error' not in ret)
+
+  def test_non_maintainer_set_online_json(self):
+    client = Client()
+
+    # take the tool offline
+    resp = client.post('/1/status/0/by/%s' % (self.user2), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 1)
+    self.failUnless('error' not in ret)
+
+    # non maintainer putting online
+    resp = client.post('/1/status/1/by/%s' % (self.user2), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['numeric_status'], 0)
+    self.failUnless('error' in ret)
+
   # apikey tests
   # API-KEY: 'KEY GOES HERE'
   def test_get_tools_summary_for_user(self):
