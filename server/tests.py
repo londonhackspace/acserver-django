@@ -574,6 +574,15 @@ class ToolTests(TestCase):
 #    print ret
     self.failUnless(len(ret) == 3)
 
+  def test_get_user(self):
+    client = Client()
+
+    resp = client.get('/api/get_user_name/22222222', HTTP_API_KEY='KEY GOES HERE')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['user_name'], 'user2')
+    self.assertEqual(ret['id'], 'HS00002')
+
 class ModelTests(TestCase):
   def setUp(self):
     t = Tool(id=1, name='test_tool', status=1, status_message='working ok')

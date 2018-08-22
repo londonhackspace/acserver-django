@@ -419,6 +419,22 @@ def get_tools_status(request):
 
   return HttpResponse(json.dumps(ret), content_type='application/json')
 
+@require_api_key
+@require_GET
+def get_user_name(request, card_id):
+  try:
+    c = Card.objects.get(card_id=card_id)
+  except:
+    result = { 'error' : 'Card does not exist'}
+    return HttpResponse(json.dumps(result), content_type='application/json')
+
+  if not c.user.subscribed:
+    result = { 'error' : 'User is not subscribed'}
+    return HttpResponse(json.dumps(result), content_type='application/json')
+
+  result = {'user_name' : c.user.name, 'id' : c.user.lhsid() }
+  return HttpResponse(json.dumps(result), content_type='application/json')
+
 #@require_api_key
 @require_GET
 def get_tool_runtime(request, tool_id, start_time):
