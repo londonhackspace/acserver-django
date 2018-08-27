@@ -11,7 +11,11 @@ class Command(BaseCommand):
 
         fromTool = Permission.objects.filter(tool_id=int(args[0]))
         for perm in fromTool:
-            newperm = Permission.objects.get(tool_id=int(args[1]), user=perm.user)
+            newperm = None
+            try:
+                newperm = Permission.objects.get(tool_id=int(args[1]), user=perm.user)
+            except:
+                pass
             if newperm is None:
                 newperm = Permission(tool_id=int(args[1]),
                                      user=perm.user,
