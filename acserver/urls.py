@@ -3,13 +3,13 @@ from django.contrib import admin
 from django.views.generic import TemplateView
 import server.views
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Examples:
     # url(r'^$', 'acserver.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^$', TemplateView.as_view(template_name="root")),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^(?P<tool_id>\d+)/status/$', server.views.status),
 #/1/card/12345678
     url(r'^(?P<tool_id>\d+)/card/(?P<card_id>[a-fA-F0-9]+)$', server.views.card),
@@ -35,4 +35,4 @@ urlpatterns = patterns('',
     url(r'^uitest_calheatmap1$', server.views.calheatmap1),  
 #/ac_card_usage
     url(r'^ac_card_usage$', server.views.ac_card_usage, name='ac_card_usage')
-)
+]
