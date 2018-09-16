@@ -19,7 +19,7 @@ class User(models.Model):
   # which can lead to duplicate names...
   name = models.TextField()
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
-  
+
   def __unicode__(self):
     o = u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
     if hasattr(sys.stdout, "encoding"):
@@ -55,7 +55,7 @@ class Tool(models.Model):
   # cos the website depends on that :/
   status_message = models.TextField()
   inuse = models.BooleanField(default=False, choices = ((True, "yes"),(False, "no")))
-  inuseby = models.ForeignKey(User, null=True, default=None)
+  inuseby = models.ForeignKey(User, null=True, default=None, on_delete=models.SET_NULL)
   # can be null cos some acnodes may be running old code.
   secret = models.CharField(max_length=8, blank=True, default="")
   secret.help_text = "The shared secret to use with the acnode, only for version 0.8 or better acnodes"
@@ -68,8 +68,9 @@ class Tool(models.Model):
 
 
 class ToolUseTime(models.Model):
-  tool = models.ForeignKey(Tool)
-  inuseby = models.ForeignKey(User)
+  tool = models.ForeignKey(Tool, on_delete=models.CASCADE)
+  # XXX will delete the tool usage when a user is deleted...
+  inuseby = models.ForeignKey(User, on_delete=models.CASCADE)
   duration = models.PositiveIntegerField()
 
   def __unicode__(self):
@@ -78,7 +79,7 @@ class ToolUseTime(models.Model):
 # card
 class Card(models.Model):
   # foreigen key to user.id
-  user = models.ForeignKey(User)
+  user = models.ForeignKey(User, on_delete=models.CASCADE)
   # actually only need 14, the uid is stored as hex.
   card_id = models.CharField(max_length=15, db_index=True, unique=True)
 
@@ -86,10 +87,10 @@ class Card(models.Model):
     return u"%d %s" % (self.id, self.card_id)
 
 class Permission(models.Model):
-  user = models.ForeignKey(User)
-  tool = models.ForeignKey(Tool)
+  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  tool = models.ForeignKey(Tool, on_delete=models.CASCADE)
   permission = models.PositiveIntegerField(choices = ((1, "user"),(2, "maintainer")))
-  addedby = models.ForeignKey(User, related_name="addedpermission")
+  addedby = models.ForeignKey(User, related_name="addedpermission", on_delete=models.CASCADE)
   date = models.DateTimeField()
 
   def __unicode__(self):
@@ -109,8 +110,8 @@ class Permission(models.Model):
     unique_together = (("user", "tool"),)
 
 class Log(models.Model):
-  tool = models.ForeignKey(Tool)
-  user = models.ForeignKey(User)
+  tool = models.ForeignKey(Tool, on_delete=models.CASCADE)
+  user = models.ForeignKey(User, on_delete=models.CASCADE)
   date = models.DateTimeField()
   message = models.TextField()
   time = models.PositiveIntegerField(default=0)

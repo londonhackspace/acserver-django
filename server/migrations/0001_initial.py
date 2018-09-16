@@ -86,37 +86,37 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='toolusetime',
             name='inuseby',
-            field=models.ForeignKey(to='server.User'),
+            field=models.ForeignKey(to='server.User', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='toolusetime',
             name='tool',
-            field=models.ForeignKey(to='server.Tool'),
+            field=models.ForeignKey(to='server.Tool', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='tool',
             name='inuseby',
-            field=models.ForeignKey(default=None, to='server.User', null=True),
+            field=models.ForeignKey(default=None, to='server.User', null=True, on_delete=models.SET_NULL),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='permissions',
             name='addedby',
-            field=models.ForeignKey(related_name='addedpermissions', to='server.User'),
+            field=models.ForeignKey(related_name='addedpermissions', to='server.User', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='permissions',
             name='tool',
-            field=models.ForeignKey(to='server.Tool'),
+            field=models.ForeignKey(to='server.Tool', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='permissions',
             name='user',
-            field=models.ForeignKey(to='server.User'),
+            field=models.ForeignKey(to='server.User', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -126,19 +126,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='log',
             name='tool',
-            field=models.ForeignKey(to='server.Tool'),
+            field=models.ForeignKey(to='server.Tool', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='log',
             name='user',
-            field=models.ForeignKey(to='server.User'),
+            field=models.ForeignKey(to='server.User', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='card',
             name='user',
-            field=models.ForeignKey(to='server.User'),
+            field=models.ForeignKey(to='server.User', on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

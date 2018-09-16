@@ -22,7 +22,7 @@ class Command(BaseCommand):
   def handle(self, *args, **options):
     if len(args) != 1:
       raise CommandError('need the path to the carddb.json file')
-    
+
     path = args[0]
     if not os.path.exists(args[0]):
       raise CommandError('Can\'t find %s' % (path))
@@ -49,7 +49,8 @@ class Command(BaseCommand):
           if c not in [x.card_id for x in ecs]:
             try:
               if len(c) <= 14:
-                eu.card_set.add(Card(card_id=c))
+                co = Card(card_id=c, user=eu)
+                co.save()
               else:
                 print("for %s, card id %s is too long" % (eu, c))
             except DataError as e:
@@ -89,7 +90,8 @@ class Command(BaseCommand):
               print("lol wtf", e)
             try:
               if len(c) <= 14:
-                nu.card_set.add(Card(card_id=c))
+                co = Card(card_id=c, user=nu)
+                co.save()
               else:
                 print("for %s, card id %s is too long" % (nu, c))
             except Exception as e:

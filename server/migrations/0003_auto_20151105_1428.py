@@ -17,9 +17,9 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('permission', models.PositiveIntegerField(choices=[(1, b'user'), (2, b'maintainer')])),
                 ('date', models.DateTimeField()),
-                ('addedby', models.ForeignKey(related_name='addedpermission', to='server.User')),
-                ('tool', models.ForeignKey(to='server.Tool')),
-                ('user', models.ForeignKey(to='server.User')),
+                ('addedby', models.ForeignKey(related_name='addedpermission', to='server.User', on_delete=models.CASCADE)),
+                ('tool', models.ForeignKey(to='server.Tool', on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to='server.User', on_delete=models.CASCADE)),
             ],
             options={
             },

@@ -35,13 +35,14 @@ class ToolTests(TestCase):
       self.__dict__[name] = card
       try:
         u = User.objects.get(pk=id)
-        u.card_set.add(Card(card_id=card))
         u.save()
+        c = Card(card_id=card, user=u)
+        c.save()
       except ObjectDoesNotExist:
         u = User(id=id, name=name, subscribed=subscribed)
         u.save()
-        u.card_set.add(Card(card_id=card))
-        u.save()
+        c = Card(card_id=card, user=u)
+        c.save()
 
     self.user_does_not_exist = '12345678'
     # user 2 is a user
@@ -589,8 +590,9 @@ class ModelTests(TestCase):
     t.save()
 
     u = User(id=1, name='Test user', subscribed=True)
-    u.card_set.add(Card(card_id='12345678'))
     u.save()
+    c = Card(card_id='12345678', user=u)
+    c.save()
 
   def test_permission_nodate(self):
     # if we save a permission with no date it should get the current date added.
@@ -692,8 +694,9 @@ class CheckIpTests(TestCase):
     t.save()
 
     u = User(id=1, name='Test user', subscribed=True)
-    u.card_set.add(Card(card_id='12345678'))
     u.save()
+    c = Card(card_id='12345678', user=u)
+    c.save()
 
     # make user 1 a user for tool 1
     p = Permission(user=User.objects.get(pk=1), permission=1, tool=Tool.objects.get(pk=1), addedby=User.objects.get(pk=1))
