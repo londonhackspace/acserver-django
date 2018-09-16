@@ -13,9 +13,8 @@ logger = logging.getLogger('django.request')
 def username_and_profile(u):
   if u.__class__ == Permission or u.__class__ == Card or u.__class__ == Log:
     u = u.user
-  return u'<a href="https://london.hackspace.org.uk/members/profile.php?id=%d">%s</a>' % (u.id, format_html(u.name))
+  return format_html('<a href="https://london.hackspace.org.uk/members/profile.php?id={}">{}</a>', u.id, u.name)
 username_and_profile.short_description = 'Name'
-username_and_profile.allow_tags = True
 username_and_profile.admin_order_field = 'user'
 
 class ToolAdmin(admin.ModelAdmin):
@@ -79,4 +78,3 @@ admin.site.register(User, UserAdmin)
 admin.site.register(Card, CardAdmin)
 admin.site.register(Permission, PermissionAdmin)
 admin.site.register(Log, LogAdmin)
-
