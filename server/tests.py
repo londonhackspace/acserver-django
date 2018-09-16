@@ -333,7 +333,7 @@ class ToolTests(TestCase):
 
     resp = client.get('/%d/is_tool_in_use' % (1,))
     self.assertEqual(resp.status_code, 200)
-    self.failUnless(resp.content == b'yes')
+    self.assertTrue(resp.content == b'yes')
 
     # if the tool starts and stops in the same second then this fails
     time.sleep(1)
@@ -346,7 +346,7 @@ class ToolTests(TestCase):
     resp = client.get('/%d/is_tool_in_use' % (1,))
     self.assertEqual(resp.status_code, 200)
     # this fails if the tool is used for less than a second actual bug?
-    self.failUnless(resp.content == b'no')
+    self.assertTrue(resp.content == b'no')
 
   def test_nonexistant_tool_in_use(self):
     client = Client()
@@ -354,7 +354,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
 
     # tool does not exist
-    self.failUnless(resp.content == b'-1')
+    self.assertTrue(resp.content == b'-1')
 
   # a subset of the above tests, but JSON-ified
   # Once JSON becomes the primary format, the above tests
@@ -366,7 +366,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 1)
-    self.failUnless('error' not in ret)
+    self.assertTrue('error' not in ret)
 
   def test_online_tool_does_not_exist_json(self):
     # test with an unknown tool_id
@@ -375,7 +375,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], -1)
-    self.failUnless('error' in ret)
+    self.assertTrue('error' in ret)
 
   def test_card_not_exists_json(self):
     client = Client()
@@ -383,7 +383,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], -1)
-    self.failUnless('error' in ret)
+    self.assertTrue('error' in ret)
 
   def test_user_json(self):
     client = Client()
@@ -391,7 +391,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 1)
-    self.failUnless('error' not in ret)
+    self.assertTrue('error' not in ret)
 
   def test_user_exists_and_not_user_json(self):
     client = Client()
@@ -399,7 +399,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 0)
-    self.failUnless('error' in ret)
+    self.assertTrue('error' in ret)
 
   def test_user_and_not_subscribed_json(self):
     client = Client()
@@ -407,7 +407,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], -1)
-    self.failUnless('error' in ret)
+    self.assertTrue('error' in ret)
 
   def test_maintainer_json(self):
     client = Client()
@@ -415,7 +415,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 2)
-    self.failUnless('error' not in ret)
+    self.assertTrue('error' not in ret)
 
   def test_maintainer_multi_cards_json(self):
     client = Client()
@@ -423,7 +423,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 2)
-    self.failUnless('error' not in ret)
+    self.assertTrue('error' not in ret)
 
   def test_adduser_json(self):
     client = Client()
@@ -433,14 +433,14 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 1)
-    self.failUnless('error' not in ret)
+    self.assertTrue('error' not in ret)
 
     # and now they can use the tool
     resp = client.get('/1/card/%s' % self.user3, HTTP_X_AC_JSON='Ja')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 1)
-    self.failUnless('error' not in ret)
+    self.assertTrue('error' not in ret)
 
   def test_set_offline_json(self):
     # take the tool offline
@@ -449,7 +449,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 1)
-    self.failUnless('error' not in ret)
+    self.assertTrue('error' not in ret)
 
   def test_non_maintainer_set_online_json(self):
     client = Client()
@@ -459,14 +459,14 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 1)
-    self.failUnless('error' not in ret)
+    self.assertTrue('error' not in ret)
 
     # non maintainer putting online
     resp = client.post('/1/status/1/by/%s' % (self.user2), HTTP_X_AC_JSON='Ja')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
     self.assertEqual(ret['numeric_status'], 0)
-    self.failUnless('error' in ret)
+    self.assertTrue('error' in ret)
 
   # apikey tests
   # API-KEY: 'KEY GOES HERE'
@@ -478,7 +478,7 @@ class ToolTests(TestCase):
     resp = client.get('/api/get_tools_summary_for_user/%d' % (1,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
-    self.failUnless(ret[0]['permission'] == 'maintainer')
+    self.assertTrue(ret[0]['permission'] == 'maintainer')
 
   def test_get_tools_summary_for_user_toolstuff(self):
     # get_tools_summary_for_user
@@ -487,11 +487,11 @@ class ToolTests(TestCase):
     resp = client.get('/api/get_tools_summary_for_user/%d' % (1,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
-    self.failUnless(ret[0]['permission'] == 'maintainer')
-    self.failUnless(ret[0]['status'] == 'Operational')
-    self.failUnless(ret[0]['status_message'] == 'working ok')
-    self.failUnless(ret[0]['name'] == 'test_tool')
-    self.failUnless(ret[0]['in_use'] == 'no')
+    self.assertTrue(ret[0]['permission'] == 'maintainer')
+    self.assertTrue(ret[0]['status'] == 'Operational')
+    self.assertTrue(ret[0]['status_message'] == 'working ok')
+    self.assertTrue(ret[0]['name'] == 'test_tool')
+    self.assertTrue(ret[0]['in_use'] == 'no')
 
   def test_get_tools_summary_for_user_does_not_exist(self):
     # get_tools_summary_for_user for user who does not exist
@@ -500,8 +500,8 @@ class ToolTests(TestCase):
     resp = client.get('/api/get_tools_summary_for_user/%d' % (42,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
-    self.failUnless(ret[0]['permission'] == 'unauthorised')
-    self.failUnless(ret[1]['permission'] == 'unauthorised')
+    self.assertTrue(ret[0]['permission'] == 'unauthorised')
+    self.assertTrue(ret[1]['permission'] == 'unauthorised')
 
   def test_get_tools_summary_for_user_adding_user(self):
     # get_tools_summary_for_user for user who is not authorised, and
@@ -511,7 +511,7 @@ class ToolTests(TestCase):
     resp = client.get('/api/get_tools_summary_for_user/%d' % (3,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
-    self.failUnless(ret[0]['permission'] == 'unauthorised')
+    self.assertTrue(ret[0]['permission'] == 'unauthorised')
 
     # add user 3 as a user
     resp = client.post('/1/grant-to-card/%s/by-card/%s' % (self.user3, self.user1a))
@@ -527,7 +527,7 @@ class ToolTests(TestCase):
     resp = client.get('/api/get_tools_summary_for_user/%d' % (3,), HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
-    self.failUnless(ret[0]['permission'] == 'user')
+    self.assertTrue(ret[0]['permission'] == 'user')
 
   def test_get_tools_summary_for_user_wrong_api_key(self):
     # get_tools_summary_for_user with wrong api key
@@ -535,7 +535,7 @@ class ToolTests(TestCase):
 
     resp = client.get('/api/get_tools_summary_for_user/%d' % (42,), HTTP_API_KEY='udlrabss')
     self.assertEqual(resp.status_code, 401)
-    self.failUnless(resp.content.startswith(b'HTTP Error 401'))
+    self.assertTrue(resp.content.startswith(b'HTTP Error 401'))
 
   def test_get_tools_summary_for_user_no_api_key(self):
     # get_tools_summary_for_user with wrong api key
@@ -543,7 +543,7 @@ class ToolTests(TestCase):
 
     resp = client.get('/api/get_tools_summary_for_user/%d' % (42,))
     self.assertEqual(resp.status_code, 401)
-    self.failUnless(resp.content.startswith(b'API Key required'))
+    self.assertTrue(resp.content.startswith(b'API Key required'))
 
   def test_get_tools_status(self):
     # get_tools_status basic test
@@ -552,7 +552,7 @@ class ToolTests(TestCase):
     resp = client.get('/api/get_tools_status', HTTP_API_KEY='KEY GOES HERE')
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
-    self.failUnless(ret[0]['name'] == 'test_tool')
+    self.assertTrue(ret[0]['name'] == 'test_tool')
 
   def test_get_tools_status_multiple_tools(self):
     # get_tools_status test with an extra tool
@@ -572,7 +572,7 @@ class ToolTests(TestCase):
     self.assertEqual(resp.status_code, 200)
     ret = json.loads(resp.content.decode("utf-8"))
 #    print ret
-    self.failUnless(len(ret) == 3)
+    self.assertTrue(len(ret) == 3)
 
   def test_get_user(self):
     client = Client()
@@ -596,37 +596,37 @@ class ModelTests(TestCase):
     # if we save a permission with no date it should get the current date added.
     p = Permission(user=User.objects.get(pk=1), tool=Tool.objects.get(pk=1), permission=1, addedby=User.objects.get(pk=1))
     p.save()
-    self.failUnless(p.date != None)
+    self.assertTrue(p.date != None)
 
   def test_permission_date(self):
     # permissions can have dates in the past, e.g. if we are importing old logs
     now = timezone.now() - datetime.timedelta(days=30)
     p = Permission(user=User.objects.get(pk=1), tool=Tool.objects.get(pk=1), permission=1, addedby=User.objects.get(pk=1), date=now)
     p.save()
-    self.failUnless(p.date == now)
+    self.assertTrue(p.date == now)
 
   def test_permission_updated(self):
     # if a permission is changed the date should be updated.
     p = Permission(user=User.objects.get(pk=1), tool=Tool.objects.get(pk=1), permission=1, addedby=User.objects.get(pk=1))
     p.save()
-    self.failUnless(p.date != None)
+    self.assertTrue(p.date != None)
     p2 = Permission.objects.get(user=User.objects.get(pk=1), tool=Tool.objects.get(pk=1))
     # upgrde to maintainer
     p2.permission = 2
     p2.save()
-    self.failUnless(p.date < p2.date)
+    self.assertTrue(p.date < p2.date)
 
   def test_user_lhsid(self):
     u = User.objects.get(pk=1)
-    self.failUnless(u.lhsid() == 'HS00001')
+    self.assertTrue(u.lhsid() == 'HS00001')
 
   def test_user_lhsid2(self):
     u = User(id=42, name='t2', subscribed=True)
-    self.failUnless(u.lhsid() == 'HS00042')
+    self.assertTrue(u.lhsid() == 'HS00042')
 
   def test_user_username_and_profile(self):
     u = User(id=42, name='t2', subscribed=True)
-    self.failUnless(u.username_and_profile() == '<a href="https://london.hackspace.org.uk/members/profile.php?id=42">t2</a>')
+    self.assertTrue(u.username_and_profile() == '<a href="https://london.hackspace.org.uk/members/profile.php?id=42">t2</a>')
 
 class SecretTests(TestCase):
   user3  = '33333333'
@@ -664,27 +664,27 @@ class SecretTests(TestCase):
 
   def test_start(self):
     # card exists and is a user for this tool
-    self.failUnless(self.querycard(self.user3) == b'1')
+    self.assertTrue(self.querycard(self.user3) == b'1')
     # this card does not exist yet
-    self.failUnless(self.querycard(self.user3a) == b'-1')
+    self.assertTrue(self.querycard(self.user3a) == b'-1')
 
     # card exists and is a user for this tool
-    self.failUnless(self.query_secret(self.user3) == b'1')
+    self.assertTrue(self.query_secret(self.user3) == b'1')
     # this card does not exist yet
-    self.failUnless(self.query_secret(self.user3a) == b'-1')
+    self.assertTrue(self.query_secret(self.user3a) == b'-1')
 
   def test_node_missing_secret(self):
     # card exists and is a user for this tool
     # but the secret is missing now so it will fail
-    self.failUnless(self.querycard(self.user3, tool=2) == b'-1')
+    self.assertTrue(self.querycard(self.user3, tool=2) == b'-1')
 
   def test_Server_missing_secret(self):
     # we are sending an unexpected secret. the server should accept it (and log it)
-    self.failUnless(self.querycard(self.user3, secret='abcdefgh') == b'1')
+    self.assertTrue(self.querycard(self.user3, secret='abcdefgh') == b'1')
 
   def test_wrong_secret(self):
     # we are sending the wrong secret, so should be refused
-    self.failUnless(self.querycard(self.user3, tool=2, secret='abcdefgh') == b'-1')
+    self.assertTrue(self.querycard(self.user3, tool=2, secret='abcdefgh') == b'-1')
 
 class CheckIpTests(TestCase):
   def setUp(self):
@@ -740,28 +740,28 @@ class DbUpdateTests(TestCase):
 
   def test_cardb_updates(self):
     # this card does not exist yet
-    self.failUnless(self.querycard(self.user3a) == b'-1')
+    self.assertTrue(self.querycard(self.user3a) == b'-1')
     self.update_carddb("1_card_added_carddb.json")
 
     # should exist now
-    self.failUnless(self.querycard(self.user3a) == b'1')
+    self.assertTrue(self.querycard(self.user3a) == b'1')
     self.update_carddb("2_card_removed_carddb.json")
 
     # and now it's gone
-    self.failUnless(self.querycard(self.user3a) == b'-1')
+    self.assertTrue(self.querycard(self.user3a) == b'-1')
 
     # user3 should be ok
-    self.failUnless(self.querycard(self.user3) == b'1')
+    self.assertTrue(self.querycard(self.user3) == b'1')
 
     # un subscribe them
     self.update_carddb("3_user_unsubscribed_carddb.json")
     # and now they don't work
-    self.failUnless(self.querycard(self.user3) == b'-1')
+    self.assertTrue(self.querycard(self.user3) == b'-1')
 
     # re-subscribe them
     self.update_carddb("4_user_subscribed_carddb.json")
     # and now they should work
-    self.failUnless(self.querycard(self.user3) == b'1')
+    self.assertTrue(self.querycard(self.user3) == b'1')
 
   def test_empty_carddb(self):
     # it's possible things could bug out and give us an empty carddb
@@ -834,44 +834,44 @@ class ImportOldTests(TestCase):
     self.import_old_acserver('old-acserver-dump_0.json')
 
     t = Tool.objects.get(pk=1)
-    self.failUnless(t.name == 'test_tool')
-    self.failUnless(t.status == 1)
+    self.assertTrue(t.name == 'test_tool')
+    self.assertTrue(t.status == 1)
 
     p = Permission.objects.get(user=User.objects.get(pk=3), tool=t)
-    self.failUnless(p.permission == 1)
+    self.assertTrue(p.permission == 1)
 
   def test_import_two_tools(self):
     self.import_old_acserver('old-acserver-dump_1.json')
 
     t = Tool.objects.get(pk=1)
-    self.failUnless(t.name == 'test_tool')
-    self.failUnless(t.status == 1)
+    self.assertTrue(t.name == 'test_tool')
+    self.assertTrue(t.status == 1)
 
     p = Permission.objects.get(user=User.objects.get(pk=3), tool=t)
-    self.failUnless(p.permission == 1)
+    self.assertTrue(p.permission == 1)
 
     t2 = Tool.objects.get(pk=2)
-    self.failUnless(t2.name == 'test_tool2')
-    self.failUnless(t2.status == 0)
+    self.assertTrue(t2.name == 'test_tool2')
+    self.assertTrue(t2.status == 0)
 
     # they are a maintainer here
     p = Permission.objects.get(user=User.objects.get(pk=3), tool=t2)
-    self.failUnless(p.permission == 2)
+    self.assertTrue(p.permission == 2)
 
   def test_import_filter(self):
     self.import_old_acserver('old-acserver-dump_1.json', 1)
 
     t = Tool.objects.get(pk=1)
-    self.failUnless(t.name == 'test_tool')
-    self.failUnless(t.status == 1)
+    self.assertTrue(t.name == 'test_tool')
+    self.assertTrue(t.status == 1)
 
     p = Permission.objects.get(user=User.objects.get(pk=3), tool=t)
-    self.failUnless(p.permission == 1)
+    self.assertTrue(p.permission == 1)
 
     # we only imported tool 1
     try:
       t2 = Tool.objects.get(pk=2)
-      self.failUnless(False == True)
+      self.assertTrue(False == True)
     except ObjectDoesNotExist:
       # this actually throws a DoesNotExist exception - I can't find the defination of it
       # so i can't get one to compare against with assertThrows()...
@@ -882,17 +882,17 @@ class ImportOldTests(TestCase):
     self.import_old_acserver('old-acserver-dump_0.json')
 
     t = Tool.objects.get(pk=1)
-    self.failUnless(t.name == 'test_tool')
-    self.failUnless(t.status == 1)
+    self.assertTrue(t.name == 'test_tool')
+    self.assertTrue(t.status == 1)
 
     p = Permission.objects.get(user=User.objects.get(pk=3), tool=t)
-    self.failUnless(p.permission == 1)
+    self.assertTrue(p.permission == 1)
 
     # now import a newer version, in this one user 3 is now a maintainer
     self.import_old_acserver('old-acserver-dump_2.json')
 
     p = Permission.objects.get(user=User.objects.get(pk=3), tool=t)
-    self.failUnless(p.permission == 2)
+    self.assertTrue(p.permission == 2)
 
 
 class DjangoPermsTests(TestCase):
@@ -933,13 +933,13 @@ class DjangoPermsTests(TestCase):
   def test_maintainer_is_staff(self):
     u = DJACUser.objects.get(pk=1)
     # user 1 is a maintainer for tool 1
-    self.failUnless(u.is_staff == True)
+    self.assertTrue(u.is_staff == True)
 
     u = DJACUser.objects.get(pk=7)
     # user 7 is a maintainer for tool 2
-    self.failUnless(u.is_staff == True)
+    self.assertTrue(u.is_staff == True)
 
   def test_user_is_not_staff(self):
     u = DJACUser.objects.get(pk=3)
     # user 3 is not a maintainer (tho it is a user)
-    self.failUnless(u.is_staff == False)
+    self.assertTrue(u.is_staff == False)
