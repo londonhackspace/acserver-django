@@ -7,26 +7,27 @@ from server.models import Tool, Permission, Log, User
 import json, os, sys, datetime, pytz
 
 class Command(BaseCommand):
-  args = '<path/to/dump.json> [toolid]'
   help = 'import a json dump of the php acserver\'s db, if you specify a toolid, only that tool will be imported'
 
+  def add_arguments(self, parser):
+    parser.add_argument('path')
+    parser.add_argument('toolid', type=int, nargs='?', default=None)
+
   def handle(self, *args, **options):
-    if len(args) < 1 or len(args) > 2:
-      raise CommandError('need the path to the .json file and an optional toolid')
-    
-    path = args[0]
-    if not os.path.exists(args[0]):
+
+    path = options['path']
+    if not os.path.exists(path):
       raise CommandError('Can\'t find %s' % (path))
 
     # you can just import a single tool from the json file
     # good for just importing the 3-in-1 lathe from babbage for example
     onlytool = None
 
-    if len(args) == 2:
+    if 'toolid' in options:
       try:
-        onlytool = int(args[1])
+        onlytool = options['toolid']
       except Exception as e:
-        raise CommandError('not a tool id? %s : %s' % (args[1], e))
+        raise CommandError('not a tool id? %s : %s' % (options['toolid'], e))
 
     fh = open(path, 'r')
     j = json.load(fh)
@@ -54,15 +55,15 @@ class Command(BaseCommand):
     # TZ='Europe/London'
     gmt = pytz.timezone('Europe/London')
 
-    def check_added_by(p):
+    def check_added_by(p, out):
       added_by = None
       if p['added_by_user_id'] == None:
         # no user added this permission :/
         # lets just use user 1 (Russ), it's as good as any
-        print("Warning: no added_by for permission %s, using user id 1" % (str(p)))
+        out.write("Warning: no added_by for permission %s, using user id 1" % (str(p)))
         added_by = 1
       elif p['added_by_user_id'] == 0:
-        print("Warning: added_by for permission %s was 0, using user id 1" % (str(p)))
+        out.write("Warning: added_by for permission %s was 0, using user id 1" % (str(p)))
         added_by = 1
       else:
         added_by = p['added_by_user_id']
@@ -82,11 +83,11 @@ class Command(BaseCommand):
         # ok, a permission already exists.
         # check in case it's been changed
         if ep.permission != int(p['permission']):
-          print("permission changed!")
-          print(ep)
-          print(p)
+          self.stdout.write("permission changed!")
+          self.stdout.write(str(ep))
+          self.stdout.write(str(p))
           ep.permission = int(p['permission'])
-          ep.addedby = User.objects.get(pk=check_added_by(p))
+          ep.addedby = User.objects.get(pk=check_added_by(p, self.stdout))
           date = datetime.datetime.strptime(p['added_on'], format)
           ep.date = gmt.localize(date)
           ep.save()
@@ -105,13 +106,13 @@ class Command(BaseCommand):
           user=User.objects.get(pk=p['user_id']),
           tool=Tool.objects.get(pk=p['tool_id']),
           permission = int(p['permission']),
-          addedby = User.objects.get(pk=check_added_by(p)),
+          addedby = User.objects.get(pk=check_added_by(p, self.stdout)),
           date = date
           )
         perm.save()
       except ObjectDoesNotExist as e:
-        print(p)
-        print('Warning: User (or possibly a tool) does not exist, did you import the carddb first? (%s)' % (e))      
+        self.stdout.write(str(p))
+        self.stdout.write('Warning: User (or possibly a tool) does not exist, did you import the carddb first? (%s)' % (e))
 #        raise CommandError()
 
     for l in logs:
@@ -128,6 +129,6 @@ class Command(BaseCommand):
                 message=l['logged_event'], time=l['time'])
         l.save()
       except ObjectDoesNotExist as e:
-        print("failed to add log line: %s" % (l))
+        self.stdout.write("failed to add log line: %s" % (l))
 
     fh.close()

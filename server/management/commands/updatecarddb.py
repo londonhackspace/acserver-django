@@ -16,15 +16,14 @@ def PrintFrame():
   print("%s:%s, %d" % (info.filename, info.function, info.lineno))
 
 class Command(BaseCommand):
-  args = '<path/to/carddb.json>'
   help = 'Sync the carddb json file'
 
-  def handle(self, *args, **options):
-    if len(args) != 1:
-      raise CommandError('need the path to the carddb.json file')
+  def add_arguments(self, parser):
+        parser.add_argument('path')
 
-    path = args[0]
-    if not os.path.exists(args[0]):
+  def handle(self, *args, **options):
+    path = options['path']
+    if not os.path.exists(path):
       raise CommandError('Can\'t find %s' % (path))
 
     fh = open(path, 'r')
@@ -52,11 +51,11 @@ class Command(BaseCommand):
                 co = Card(card_id=c, user=eu)
                 co.save()
               else:
-                print("for %s, card id %s is too long" % (eu, c))
+                self.stdout.write("for %s, card id %s is too long" % (eu, c))
             except DataError as e:
-              print(u)
-              print(e)
-              print("error adding new card for %s, card too long? %s" % (eu, c))
+              self.stdout.write(u)
+              self.stdout.write(e)
+              self.stdout.write("error adding new card for %s, card too long? %s" % (eu, c))
         eu.save()
       else:
         with transaction.atomic():
@@ -64,9 +63,9 @@ class Command(BaseCommand):
           try:
             nu.save()
           except Exception as e:
-            print("blah.")
-            print(e, type(e))
-            print(u)
+            self.stdout.write("blah.")
+            self.stdout.write(e, type(e))
+            self.stdout.write(u)
           for c in u['cards']:
             try:
               # the card already exist?
@@ -74,37 +73,37 @@ class Command(BaseCommand):
               # bother, it does.
               # Which of the 2 users is subscribed?
               if not u['subscribed']:
-                print("skipping card %s, it's already in the db and this user is not subscribed" % (c,))
+                self.stdout.write("skipping card %s, it's already in the db and this user is not subscribed" % (c,))
                 continue
               else:
                 # darn, maybe the other user is not subscribed?
                 if not ec.user.subscribed:
-                  print("card %s is already in the db for %s, but they are not subscribed so i'm deleting the card" % (c, ec.user))
+                  self.stdout.write("card %s is already in the db for %s, but they are not subscribed so i'm deleting the card" % (c, ec.user))
                   ec.delete()
                 else:
-                  print("panic: card id %s is in use by 2 users: %s and %s" % (c, ec.user, nu))
+                  self.stdout.write("panic: card id %s is in use by 2 users: %s and %s" % (c, ec.user, nu))
             except ObjectDoesNotExist:
               pass
             except Exception as e:
-              print(u)
-              print("lol wtf", e)
+              self.stdout.write(u)
+              self.stdout.write("lol wtf", e)
             try:
               if len(c) <= 14:
                 co = Card(card_id=c, user=nu)
                 co.save()
               else:
-                print("for %s, card id %s is too long" % (nu, c))
+                self.stdout.write("for %s, card id %s is too long" % (nu, c))
             except Exception as e:
-              print(e, type(e))
+              self.stdout.write(e, type(e))
               PrintFrame()
-              print(u)
-              print(nu)
+              self.stdout.write(u)
+              self.stdout.write(nu)
               continue
           try:
             nu.save()
           except Exception as e:
-            print(e, type(e))
+            self.stdout.write(e, type(e))
             PrintFrame()
-            print(u)
-            print(nu)
+            self.stdout.write(u)
+            self.stdout.write(nu)
     fh.close()

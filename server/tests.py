@@ -2,7 +2,7 @@ import datetime, time, json, os
 
 from django.test import TestCase, Client
 from django.utils import timezone
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.core import management
 from django.db.models import Max

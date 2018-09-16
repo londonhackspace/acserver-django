@@ -2,22 +2,25 @@ from django.core.management.base import BaseCommand, CommandError
 from server.models import Permission
 
 class Command(BaseCommand):
-    args = "<from> <to>"
     help = "Copies permissions from tool A to tool B"
 
-    def handle(self, *args, **options):
-        if len(args) != 2:
-            raise CommandError('Please supply two tool IDs')
+  def add_arguments(self, parser):
+        parser.add_argument('toola', type=int)
+        parser.add_argument('toolb', type=int)
 
-        fromTool = Permission.objects.filter(tool_id=int(args[0]))
+    def handle(self, *args, **options):
+        toola = options['toola']
+        toolb = options['toolb']
+
+        fromTool = Permission.objects.filter(tool_id=toola)
         for perm in fromTool:
             newperm = None
             try:
-                newperm = Permission.objects.get(tool_id=int(args[1]), user=perm.user)
+                newperm = Permission.objects.get(tool_id=toolb, user=perm.user)
             except:
                 pass
             if newperm is None:
-                newperm = Permission(tool_id=int(args[1]),
+                newperm = Permission(tool_id=toolb,
                                      user=perm.user,
                                      permission=perm.permission,
                                      addedby=perm.addedby,
