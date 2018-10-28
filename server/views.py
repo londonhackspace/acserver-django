@@ -432,7 +432,7 @@ def get_user_name(request, card_id):
     result = { 'error' : 'User is not subscribed'}
     return HttpResponse(json.dumps(result), content_type='application/json')
 
-  result = {'user_name' : c.user.name, 'id' : c.user.lhsid() }
+  result = {'user_name' : c.user.name, 'id' : c.user.lhsid(), 'gladosfile': c.user.gladosfile }
   return HttpResponse(json.dumps(result), content_type='application/json')
 
 #@require_api_key

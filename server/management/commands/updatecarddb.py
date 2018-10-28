@@ -38,6 +38,11 @@ class Command(BaseCommand):
         # update nick and subscription
         eu.name = u['nick']
         eu.subscribed=u['subscribed']
+        #gladosfile should be empty rather than null in this DB
+        if u['gladosfile'] is not None:
+          eu.gladosfile=u['gladosfile']
+        else:
+          eu.gladosfile=""
         ecs = eu.card_set.all()
         for ec in ecs:
           # delete cards that have gone away
@@ -60,6 +65,9 @@ class Command(BaseCommand):
       else:
         with transaction.atomic():
           nu = User(id=int(u['id']), name=u['nick'], subscribed=u['subscribed'])
+          #gladosfile should be empty rather than null in this DB
+          if u['gladosfile'] is not None:
+            nu.gladosfile = u['gladosfile']
           try:
             nu.save()
           except Exception as e:

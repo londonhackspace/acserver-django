@@ -19,13 +19,13 @@ username_and_profile.admin_order_field = 'user'
 
 class ToolAdmin(admin.ModelAdmin):
   readonly_fields = ('inuse', 'inuseby')
-  list_display = ('id', 'name', 'status', 'status_message', 'secret', 'inuse', 'inuseby')
+  list_display = ('id', 'name', 'status', 'status_message', 'secret', 'inuse', 'inuseby', 'type')
   search_fields = ('name','id')
-  list_editable = ('status', 'status_message')
-  list_filter = ('status',)
+  list_editable = ('status', 'status_message', 'type')
+  list_filter = ('status', 'type')
 
 class UserAdmin(admin.ModelAdmin):
-  fields = (('lhsid', 'name', 'subscribed'),)
+  fields = (('lhsid', 'name', 'subscribed', 'gladosfile'),)
   readonly_fields = ('lhsid', 'name', 'subscribed')
   list_display = ('id', 'lhsid', 'username_and_profile', 'subscribed',)
   search_fields = ('name','id')

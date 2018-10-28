@@ -19,6 +19,7 @@ class User(models.Model):
   # which can lead to duplicate names...
   name = models.TextField()
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
+  gladosfile = models.TextField(blank=True)
 
   def __unicode__(self):
     o = u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
@@ -48,6 +49,16 @@ class User(models.Model):
 
 # tool
 class Tool(models.Model):
+  TYPE_DOOR = 1
+  TYPE_RESTRICTED_DOOR = 2
+  TYPE_TOOL = 3
+
+  TYPE_CHOICES = (
+      (TYPE_DOOR, "Unrestricted Door"),
+      (TYPE_RESTRICTED_DOOR, "Restricted Door"),
+      (TYPE_TOOL, "Tool"),
+    )
+
   name = models.TextField()
   status = models.PositiveIntegerField(default=0, choices = ((1, "Operational"), (0, "Out of service")))
   # If a tool is in service the status_message should be 'OK'
@@ -58,6 +69,8 @@ class Tool(models.Model):
   # can be null cos some acnodes may be running old code.
   secret = models.CharField(max_length=8, blank=True, default="")
   secret.help_text = "The shared secret to use with the acnode, only for version 0.8 or better acnodes"
+
+  type = models.IntegerField(choices=TYPE_CHOICES, default=TYPE_TOOL)
 
   def __unicode__(self):
     return u"%s (id: %d)" % (self.name, self.id)
