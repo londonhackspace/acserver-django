@@ -428,11 +428,9 @@ def get_user_name(request, card_id):
     result = { 'error' : 'Card does not exist'}
     return HttpResponse(json.dumps(result), content_type='application/json')
 
-  if not c.user.subscribed:
-    result = { 'error' : 'User is not subscribed'}
-    return HttpResponse(json.dumps(result), content_type='application/json')
-
-  result = {'user_name' : c.user.name, 'id' : c.user.lhsid(), 'gladosfile': c.user.gladosfile }
+  result = {'user_name' : c.user.name, 'id' : c.user.lhsid(),
+            'gladosfile': c.user.gladosfile,
+            'subscribed': c.user.subscribed }
   return HttpResponse(json.dumps(result), content_type='application/json')
 
 #@require_api_key
