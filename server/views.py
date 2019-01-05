@@ -166,7 +166,7 @@ def card(request, tool_id, card_id):
   else:
     # For subscribed users, getting the name is useful for doorbot
     result['user_name'] = c.user.name
-
+    result['user_id'] = c.user.id
 
   logger.info('returning perm %d for %s // %s from %s', result['numeric_status'], 
               request.method, request.path, ip,
