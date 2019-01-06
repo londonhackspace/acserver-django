@@ -6,7 +6,7 @@ from django.db import DataError, transaction
 
 from server.models import User, Card
 
-import json, os, sys, inspect
+import json, os, sys, inspect, stat
 
 def PrintFrame():
   callerframerecord = inspect.stack()[1]    # 0 represents this line
@@ -26,8 +26,18 @@ class Command(BaseCommand):
     if not os.path.exists(path):
       raise CommandError('Can\'t find %s' % (path))
 
+    sr = os.stat(path)
+    if sr[stat.ST_SIZE] == 0:
+      raise CommandError('%s is zero size, not using it.' % (path))
+
     fh = open(path, 'r')
-    for u in json.load(fh):
+    jdata = json.load(fh)
+    fh.close()
+
+    if len(jdata) == 0:
+      raise CommandError('%s has no entries, not using it.' % (path))
+
+    for u in jdata:
       # {u'perms': [], u'subscribed': False, u'gladosfile': u'zz', u'nick': u'notsubscribed', u'cards': [u'44444444'], u'id': u'4'}
       eu = None
       try:
@@ -114,4 +124,21 @@ class Command(BaseCommand):
             PrintFrame()
             self.stdout.write(u)
             self.stdout.write(nu)
-    fh.close()
+
+    carddb_by_id = {}
+    for u in jdata:
+      # {u'perms': [], u'subscribed': False, u'gladosfile': u'zz', u'nick': u'notsubscribed', u'cards': [u'44444444'], u'id': u'4'}
+      carddb_by_id[int(u['id'])] = u
+
+    # loop through all acnode users and check that they exist in the carddb.
+    for au in User.objects.all():
+      if au.id not in carddb_by_id:
+        self.stdout.write("user with id %d is in the local db, but not in carddb.json, unsubscribeing them and removing their cards" % (au.id))
+        # remove  cards
+        cs = au.card_set.all()
+        for c in cs:
+            c.delete()
+        # set status to unsubscribed
+        au.subscribed = False
+        # we don't want to delete them cos of 'on cascade delete' stuffs, and there account might get re-activated
+        au.save()
