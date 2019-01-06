@@ -4,6 +4,7 @@ from django.test import TestCase, Client
 from django.utils import timezone
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.management.base import CommandError
 from django.core import management
 from django.db.models import Max
 from server.models import Tool, Card, User, Permission, DJACUser
@@ -772,9 +773,12 @@ class DbUpdateTests(TestCase):
     ret = self.querycard(self.user3)
     self.assertEqual(ret, b'1')
 
-    self.update_carddb("empty_carddb.json")
+    with self.assertRaises(CommandError):
+      self.update_carddb("empty_carddb.json")
 
-    # this works by accident, we don't specificly test for it.
+    with self.assertRaises(CommandError):
+      self.update_carddb("zero_carddb.json")
+
     ret = self.querycard(self.user3)
     self.assertEqual(ret, b'1')
 
@@ -814,6 +818,24 @@ class DbUpdateTests(TestCase):
     # Doing it a 2nd time means we test updating a user who has overlong cards.
     #
     self.update_carddb("unicode_carddb.json")
+
+  def test_user_removed_from_carddb(self):
+
+    user6 = User.objects.get(pk=6)
+    self.assertTrue(user6.subscribed == True)
+    cards = user6.card_set.all()
+    self.assertTrue(len(cards) > 0)
+
+    self.update_carddb("5_user_removed_carddb.json")
+
+    # should now be unsubscribed and have no cards.
+    user6 = User.objects.get(pk=6)
+    self.assertTrue(user6.subscribed == False)
+    cards = user6.card_set.all()
+    self.assertTrue(len(cards) == 0)
+
+
+#    self.assertTrue(self.querycard(self.user3) == b'1')
 
 
 # importoldacserver
