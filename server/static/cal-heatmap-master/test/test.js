@@ -1,4 +1,4 @@
-/*! cal-heatmap v3.5.4 (Mon Aug 24 2015 10:02:24)
+/*! cal-heatmap v3.6.2 (Mon Oct 10 2016 01:36:20)
  *  ---------------------------------------------
  *  Cal-Heatmap is a javascript module to create calendar heatmap to visualize time series data
  *  https://github.com/wa0x6e/cal-heatmap
@@ -670,7 +670,7 @@ _testInvalidItemSelector("array", []);
 _testInvalidItemSelector("number", 15);
 _testInvalidItemSelector("function", function() {});
 
-test("itemSelector target does not exists", function() {
+test("itemSelector target does not exist", function() {
 	expect(1);
 
 	throws(function() { createCalendar({itemSelector: "#test"}); }, "Non-existent itemSelector raises an Error");
@@ -2023,7 +2023,7 @@ test("Return the highlight and now classname if a date should be highlighted and
 	expect(1);
 
 	var cal = createCalendar({highlight: [new Date(2000, 0, 1), new Date()]});
-	strictEqual(cal.getHighlightClassName(new Date()), " highlight now");
+	strictEqual(cal.getHighlightClassName(new Date()), " highlight-now");
 });
 
 test("Return an empty string if a date is not in the highlight list", function() {

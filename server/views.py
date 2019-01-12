@@ -9,7 +9,7 @@ from django.db.models import Sum
 
 from .models import Tool, Card, User, Permission, ToolUseTime, Log
 
-import json, logging, datetime
+import json, logging, datetime, time
 from netaddr import IPAddress, IPNetwork
 from functools import wraps
 from pytz import timezone
@@ -168,7 +168,7 @@ def card(request, tool_id, card_id):
     result['user_name'] = c.user.name
     result['user_id'] = c.user.id
 
-  logger.info('returning perm %d for %s // %s from %s', result['numeric_status'], 
+  logger.info('returning perm %d for %s // %s from %s', result['numeric_status'],
               request.method, request.path, ip,
               extra={
                   'status_code': 200,
@@ -492,27 +492,24 @@ def ac_card_usage(request):
     return JsonResponse(ac_card_stats)
 
 
-#just testing some simple UI stuff
+# Just testing some simple UI stuff
+# see: https://cal-heatmap.com/
 def calheatmap1(request):
   #stufftest = {}
   #stufftest['thing'] = "test"
-  from datetime import timedelta
-  from datetime import datetime
-  from . import models
-  import time
 
-  diffs = timedelta(days = -1)
-  timenow = datetime.now()
+  diffs = datetime.timedelta(days = -1)
+  timenow = datetime.datetime.now()
   timethen = timenow + diffs
   yearthen = timethen.year
   daythen = timethen.day - 1
   monththen = timethen.month - 1
 
-  #logses = models.Log.objects.all()
+  #logses = Log.objects.all()
   #lolz = logses[0].message
 
   clogs = []
-  for e in models.Log.objects.filter(date__gte=timethen, tool_id=5):
+  for e in Log.objects.filter(date__gte=timethen, tool_id=5):
     clogs.append(e)
 
   #clogsarray = list();

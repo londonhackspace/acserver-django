@@ -1,5 +1,28 @@
 # Changelog
 
+## v3.6.3 [Unreleased]
+
+* [fix] Fix #223 Fix an issue the max color becomes black when legend starts with 0
+* [fix] Fix #190 Ajax requests sent twice
+* [fix] Fix #229 Calling `update()` without arguments refresh the calendar with original data
+* [new] Fix #194 Add `afterUpdate()` callback
+* [new] Fix #234 Pass custom headers to XHR request
+* [change] Moved format function in library implementation (#220)
+
+## v3.6.2 [2016-10-09]
+
+* [fix] Fix #217 Month domain and week subdomain not working when week start set to sunday
+
+> From now, 3.x branch will only include bugfixes, all new features will go to 4.x branch
+
+## v3.6.1 [2016-08-30]
+
+* [fix] Fix #207 Locking d3.js version to v3.x
+
+## v3.6.0 [2016-04-24]
+
+* [fix] Fix #183 Fix/add now without highlight
+
 ## v3.5.4 [2015-08-24]
 
 * [fix] Update all references to github account new username
