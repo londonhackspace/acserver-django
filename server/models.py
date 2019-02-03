@@ -6,7 +6,12 @@ from django.utils import timezone
 from django.contrib.auth.models import User as DJUser
 
 import sys, datetime, logging
-
+#Vending Machine Stock
+class Venditem(models.Model):
+  name = models.TextField(default = '')
+  item = models.PositiveIntegerField()
+  price = models.TextField(default = '')
+  stock = models.PositiveIntegerField(default = 0)
 # user
 class User(models.Model):
   # the id field is created automatticly by django
@@ -20,6 +25,7 @@ class User(models.Model):
   name = models.TextField()
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
   gladosfile = models.TextField(blank=True)
+  balance = models.TextField(default='0.00')
 
   def __unicode__(self):
     o = u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
