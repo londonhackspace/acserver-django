@@ -7,11 +7,8 @@ from django.contrib.auth.models import User as DJUser
 
 import sys, datetime, logging
 #Vending Machine Stock
-class Venditem(models.Model):
-  name = models.TextField(default = '')
-  item = models.PositiveIntegerField()
-  price = models.TextField(default = '')
-  stock = models.PositiveIntegerField(default = 0)
+
+
 # user
 class User(models.Model):
   # the id field is created automatticly by django
@@ -25,7 +22,7 @@ class User(models.Model):
   name = models.TextField()
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
   gladosfile = models.TextField(blank=True)
-  balance = models.TextField(default='0.00')
+  balance = models.PositiveIntegerField(default=0)#Balance in pence
 
   def __unicode__(self):
     o = u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
@@ -84,6 +81,15 @@ class Tool(models.Model):
   def __str__(self):
     return self.__unicode__()
 
+class VendItem(models.Model):
+  name = models.TextField(default = '')
+  price = models.PositiveIntegerField(default = 0) # Price in pence
+
+class MachineItem(models.Model):
+    item = models.ForeignKey(VendItem)
+    tool = models.ForeignKey(Tool)
+    position = models.PositiveIntegerField()
+    stock = models.PositiveIntegerField()
 
 class ToolUseTime(models.Model):
   tool = models.ForeignKey(Tool, on_delete=models.CASCADE)

@@ -7,7 +7,7 @@ from django.conf import settings
 from django.utils.decorators import available_attrs
 from django.db.models import Sum
 
-from .models import Tool, Card, User, Permission, ToolUseTime, Log, Venditem
+from .models import Tool, Card, User, Permission, ToolUseTime, Log, VendItem, MachineItem
 
 import json, logging, datetime, time
 from netaddr import IPAddress, IPNetwork
@@ -186,40 +186,17 @@ def card(request, tool_id, card_id):
 @check_secret
 @check_ip
 @require_GET
-def getinfo(request, tool_id, item_requested):
-  ip = get_ip(request)
+def getinfo(request, tool_id):
   try:
-    t = Tool.objects.get(pk=tool_id)
+    m = MachineItem.objects.filter(tool__pk=tool_id)
   except ObjectDoesNotExist as e:
-    logger.warning('Tool does not exist for %s // %s from %s', request.method, request.path, ip,
-                extra={
-                    'status_code': 200,
-                    'request': request
-                }
-            )
-    result = { 'numeric_status' : -1, 'error' : 'Tool does Not Exist' }
-    return makeResponse(request, result)
-
-  try:
-    i = Venditem.objects.get(item=item_requested)
-  except ObjectDoesNotExist as e:
-    logger.warning('Item does not exist %s // %s from %s', request.method, request.path, ip,
-                extra={
-                    'status_code': 200,
-                    'request': request
-                }
-            )
-    result = { 'numeric_status' : -1, 'error' : 'Item does Not Exist' }
-    return makeResponse(request, result)
-
-  result = { 'numeric_status' : 1 }
-  # For subscribed users, getting the name is useful for doorbot
-  result['item_name'] = i.name
-  result['item'] = i.item
-  result['price'] = i.price
-  result['stock'] = i.stock
-
-  return makeResponse(request, result)
+        result = {'status' : 'Error'}
+        return HttpResponse(json.dumps(result), content_type='application/json')
+  result = {'status' : 'Success'}
+  result['items'] = []
+  for item in m:
+    result['items'].append({'position' : item.position, 'name' : item.item.name, 'stock' : item.stock , 'price' : item.item.price, 'position' : item.position})
+  return HttpResponse(json.dumps(result), content_type='application/json')
 
 
 @check_secret
@@ -262,13 +239,13 @@ def updatestock(request, tool_id, item_requested, new_stock):
     result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
     return makeResponse(request, result)
   try:
-    i = Venditem.objects.get(item = item_requested)
+    i = VendItem.objects.get()
   except ObjectDoesNotExist as e:
     result = { 'numeric_status' : -1, 'error' : 'Item does not exist'}
     return makeResponse(request, result)
 
-  i.stock = int(new_stock)
-  i.save()
+  #i.stock = int(new_stock)
+  #i.save()
   result = { 'numeric_status' : 1, 'success' : 'Stock Updated'}
   return makeResponse(request, result)
 
