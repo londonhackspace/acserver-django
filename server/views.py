@@ -192,42 +192,60 @@ def getstockinfo(request, tool_id):
   except ObjectDoesNotExist as e:
         result = {'status' : 'Error'}
         return HttpResponse(json.dumps(result), content_type='application/json')
-  result = {'status' : 'Success'}
-  result['items'] = []
+  result = {'status' : 'Success' , 'items' : []}
   for item in m:
-    result['items'].append({'position' : item.position, 'name' : item.item.name, 'stock' : item.stock , 'price' : item.item.price, 'position' : item.position})
-  return HttpResponse(json.dumps(result), content_type='application/json')
+    result['items'].append({'position' : item.position,
+    'name' : item.item.name,
+    'stock' : item.stock,
+    'price' : item.item.price})
+  return HttpResponse(json.dumps(result, indent=1), content_type='application/json')
 
 
 @check_secret
 @check_ip
 @require_GET
-def updatebalance(request, tool_id, new_balance, card_id):
+def vend(request, tool_id, item_requested, card_id):
   try:
-    t = Tool.objects.get(pk=tool_id)
+      m = MachineItem.objects.get(tool__pk=tool_id, position=item_requested)
   except ObjectDoesNotExist as e:
-    result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
-    return makeResponse(request, result)
-
+      result = {'status' : 'Error'}
+      return HttpResponse(json.dumps(result), content_type='application/json')
   try:
-    c = Card.objects.get(card_id=card_id)
+      u = Card.objects.get(card_id=card_id).user
   except ObjectDoesNotExist as e:
-    result = { 'numeric_status' : 0, 'error' : 'Card does not exist'}
-    return makeResponse(request, result)
+      result = {'status' : 'Error'}
+      return HttpResponse(json.dumps(result), content_type='application/json')
+  if u.balance < m.item.price or not(u.subscribed):
+      result = {'status' : 'Error'}
+      return HttpResponse(json.dumps(result), content_type='application/json')
+  u.balance = u.balance - m.item.price
+  u.save()
+  result = {'status' : 'Success'}
+  #log vend here
+  return HttpResponse(json.dumps(result), content_type='application/json')
 
-  if not c.user.subscribed:
-    # needs to be subscribed to be a user
-    result = { 'numeric_status' : 0, 'error' : 'Card is not subscribed'}
-    return makeResponse(request, result)
+@check_secret
+@check_ip
+@require_GET
+def addbalance(request, tool_id, amount, card_id):
+  try:
+      t = tool.objects.get(pk=tool_id)
+  except ObjectDoesNotExist as e:
+      result = {'status' : 'Error'}
+      return HttpResponse(json.dumps(result), content_type='application/json')
+      #log error
+  try:
+      u = Card.objects.get(card_id=card_id).user
+  except ObjectDoesNotExist as e:
+      result = {'status' : 'Error'}
+      return HttpResponse(json.dumps(result), content_type='application/json')
+      #log machine fault, possibly put out of service (maybe in the json response? {'status' : 'fault'})
+      #The machine should only accept money when a verified (by server) card is used
+  u.balance = u.balance + amount
+  u.save()
+  result = {'status' : 'Success'}
+  return HttpResponse(json.dumps(result), content_type='application/json')
 
-  c.user.balance = new_balance
-  c.user.save()
-
-
-  result = { 'numeric_status' : 1, 'success' : 'Balance Updated'}
-  l = Log(tool=t, user=c.user, message="Balance updated to : " + new_balance)
-  l.save()
-  return makeResponse(request, result)
 
 @check_secret
 @check_ip
