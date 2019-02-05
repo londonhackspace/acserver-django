@@ -186,7 +186,7 @@ def card(request, tool_id, card_id):
 @check_secret
 @check_ip
 @require_GET
-def getinfo(request, tool_id):
+def getstockinfo(request, tool_id):
   try:
     m = MachineItem.objects.filter(tool__pk=tool_id)
   except ObjectDoesNotExist as e:
@@ -244,8 +244,8 @@ def updatestock(request, tool_id, item_requested, new_stock):
     result = { 'numeric_status' : -1, 'error' : 'Item does not exist'}
     return makeResponse(request, result)
 
-  #i.stock = int(new_stock)
-  #i.save()
+  i.stock = int(new_stock)
+  i.save()
   result = { 'numeric_status' : 1, 'success' : 'Stock Updated'}
   return makeResponse(request, result)
 

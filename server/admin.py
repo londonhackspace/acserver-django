@@ -32,12 +32,13 @@ class UserAdmin(admin.ModelAdmin):
   list_filter = ('subscribed',)
 
 class VendAdmin(admin.ModelAdmin):
-  fields = (('name', 'price',),)
-  list_display = ('name', 'price',)
+  fields = (('name', 'price', 'decimalprice'),)
+  readonly_fields = ('decimalprice',)
+  list_display = ('name','decimalprice')
   search_fields = ('name',)
 
 class MachineAdmin(admin.ModelAdmin):
-    fields = (('item', 'tool', 'position', 'stock'),)
+    fields = (('item', 'tool', 'position', 'stock',),)
     list_display = ('item', 'tool', 'position', 'stock',)
     search_fields = ('item', 'position')
     list_filter = ('tool', 'position',)

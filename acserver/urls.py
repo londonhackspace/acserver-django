@@ -36,9 +36,9 @@ urlpatterns = [
 #/ac_card_usage
     url(r'^ac_card_usage$', server.views.ac_card_usage, name='ac_card_usage'),
 #/1/updatebalance/new_balance/12345678
-    url(r'^(?P<tool_id>\d+)/updatebalance/(?P<new_balance>[0-9]+)/(?P<card_id>[a-fA-F0-9]+)$', server.views.updatebalance),
+    url(r'^(?P<tool_id>\d+)/updatebalance/(?P<new_balance>[0-9.]+)/(?P<card_id>[a-fA-F0-9]+)$', server.views.updatebalance),
 #/1/updatestock/12/
     url(r'^(?P<tool_id>\d+)/updatestock/(?P<item_requested>[0-9]+)/(?P<new_stock>[0-9+]+)$', server.views.updatestock),
 #/1/getinfo/12/
-    url(r'^(?P<tool_id>\d+)/getinfo$', server.views.getinfo)
+    url(r'^(?P<tool_id>\d+)/getstockinfo$', server.views.getstockinfo)
 ]

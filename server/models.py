@@ -84,12 +84,20 @@ class Tool(models.Model):
 class VendItem(models.Model):
   name = models.TextField(default = '')
   price = models.PositiveIntegerField(default = 0) # Price in pence
+  def decimalprice(self):
+    return u"£%.2f" % (self.price / 100)
+  def __str__(self):
+      return self.name
 
 class MachineItem(models.Model):
-    item = models.ForeignKey(VendItem)
-    tool = models.ForeignKey(Tool)
-    position = models.PositiveIntegerField()
-    stock = models.PositiveIntegerField()
+  item = models.ForeignKey(VendItem)
+  tool = models.ForeignKey(Tool)
+  position = models.PositiveIntegerField()
+  stock = models.PositiveIntegerField()
+  def __str__(self):
+    return u"%s on tool %d" % (self.item.name, self.tool.id)
+
+
 
 class ToolUseTime(models.Model):
   tool = models.ForeignKey(Tool, on_delete=models.CASCADE)
