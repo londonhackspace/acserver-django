@@ -7,7 +7,109 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import CommandError
 from django.core import management
 from django.db.models import Max
-from server.models import Tool, Card, User, Permission, DJACUser
+from server.models import Tool, Card, User, MachineItem, VendItem, Permission, DJACUser
+
+class VendTests(TestCase):
+  def setUp(self):
+    t = Tool(id=1, name='test_tool', status=1, status_message='working ok')
+    t.save()
+
+    v = VendItem(name='test_item', price=55)
+    v.save()
+    v = VendItem(name='test_item2', price=600)
+    v.save()
+
+    m = MachineItem(item=VendItem.objects.get(name='test_item') , tool=Tool.objects.get(pk=1), position=1, stock=0)
+    m.save()
+    m = MachineItem(item=VendItem.objects.get(name='test_item2') , tool=Tool.objects.get(pk=1), position=2, stock=1)
+    m.save()
+    m = MachineItem(item=VendItem.objects.get(name='test_item') , tool=Tool.objects.get(pk=1), position=3, stock=7)
+    m.save()
+
+    users = (
+      # user 1 has 2 cards, and is a maintainer
+      (1, 'user1a', '00112233445566', True, 99999),
+      (1, 'user1b', 'aabbccdd', True, 99999),
+
+      # a user
+      (2, 'user2', '22222222', True, 0),
+
+      # subscribed, but not a user
+      (3, 'user3', '33333333', True, 77),
+
+      # exists, but not is not subscribed
+      (4, 'user4', '44444444', False, 555),
+    )
+
+    for id, name, card, subscribed, balance in users:
+      self.__dict__[name] = card
+      try:
+        u = User.objects.get(pk=id)
+        u.save()
+        c = Card(card_id=card, user=u)
+        c.save()
+      except ObjectDoesNotExist:
+        u = User(id=id, name=name, subscribed=subscribed, balance=balance)
+        u.save()
+        c = Card(card_id=card, user=u)
+        c.save()
+  def test_getstockinfo(self):
+    # stock info
+    client = Client()
+    resp = client.get('/%d/getstockinfo' % 1, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['status'], 'Success')
+    self.assertEqual(int(ret['items'][0]['price']), 55)
+    self.assertEqual(ret['items'][0]['name'], 'test_item')
+    self.assertEqual(int(ret['items'][0]['stock']), 0)
+    self.assertEqual(int(ret['items'][0]['position']), 1)
+
+  def test_getstockinfo_invalidtool(self):
+    # stock info
+    client = Client()
+    resp = client.get('/%d/getstockinfo' % 2, HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['status'], 'Error')
+
+  def test_vend(self):
+    client = Client()
+    resp = client.get('/%d/vend/%d/%s' % (1, 2, 'aabbccdd'), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['status'], 'Success')
+    self.assertEqual(Card.objects.get(card_id='aabbccdd').user.balance, 99399)
+
+  def test_vend_invaliditem(self):
+    client = Client()
+    resp = client.get('/%d/vend/%d/%s' % (1, 5, 'aabbccdd'), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['status'], 'Error')
+
+  def test_vend_invalidtool(self):
+    client = Client()
+    resp = client.get('/%d/vend/%d/%s' % (4, 2, 'aabbccdd'), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['status'], 'Error')
+
+  def test_addbalance(self):
+    client = Client()
+    resp = client.get('/%d/addbalance/%d/%s' % (1, 600, '22222222'), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['status'], 'Success')
+    self.assertEqual(Card.objects.get(card_id='22222222').user.balance, 600)
+
+  def test_addbalance_invaliduser(self):
+    client = Client()
+    resp = client.get('/%d/addbalance/%d/%s' % (1, 600, '12ab12b'), HTTP_X_AC_JSON='Ja')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+    self.assertEqual(ret['status'], 'Error')
+
 
 class ToolTests(TestCase):
   def setUp(self):

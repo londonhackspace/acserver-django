@@ -6,13 +6,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from django.utils.decorators import available_attrs
 from django.db.models import Sum
-
-from .models import Tool, Card, User, Permission, ToolUseTime, Log, Venditem
+from django.db import transaction
+from .models import Tool, Card, User, Permission, ToolUseTime, Log, VendItem, MachineItem
 
 import json, logging, datetime, time
 from netaddr import IPAddress, IPNetwork
 from functools import wraps
 from pytz import timezone
+
 
 logger = logging.getLogger('django.request')
 
@@ -186,71 +187,85 @@ def card(request, tool_id, card_id):
 @check_secret
 @check_ip
 @require_GET
-def getinfo(request, tool_id, item_requested):
-  ip = get_ip(request)
+def getstockinfo(request, tool_id):
   try:
     t = Tool.objects.get(pk=tool_id)
   except ObjectDoesNotExist as e:
-    logger.warning('Tool does not exist for %s // %s from %s', request.method, request.path, ip,
-                extra={
-                    'status_code': 200,
-                    'request': request
-                }
-            )
-    result = { 'numeric_status' : -1, 'error' : 'Tool does Not Exist' }
-    return makeResponse(request, result)
-
+    result = {'status' : 'Error', 'reason' : 'Tool does not exist'}
+    return HttpResponse(json.dumps(result), content_type='application/json')
   try:
-    i = Venditem.objects.get(item=item_requested)
+    m = MachineItem.objects.filter(tool__pk=tool_id)
   except ObjectDoesNotExist as e:
-    logger.warning('Item does not exist %s // %s from %s', request.method, request.path, ip,
-                extra={
-                    'status_code': 200,
-                    'request': request
-                }
-            )
-    result = { 'numeric_status' : -1, 'error' : 'Item does Not Exist' }
-    return makeResponse(request, result)
-
-  result = { 'numeric_status' : 1 }
-  # For subscribed users, getting the name is useful for doorbot
-  result['item_name'] = i.name
-  result['item'] = i.item
-  result['price'] = i.price
-  result['stock'] = i.stock
-
-  return makeResponse(request, result)
+        result = {'status' : 'Error', 'reason' : 'Tool does not exist or is not a vending machine'}
+        return HttpResponse(json.dumps(result), content_type='application/json')
+  result = {'status' : 'Success' , 'items' : []}
+  for item in m:
+    result['items'].append({'position' : item.position,
+    'name' : item.item.name,
+    'stock' : item.stock,
+    'price' : item.item.price})
+  return HttpResponse(json.dumps(result, indent=1), content_type='application/json')
 
 
 @check_secret
 @check_ip
 @require_GET
-def updatebalance(request, tool_id, new_balance, card_id):
-  try:
-    t = Tool.objects.get(pk=tool_id)
-  except ObjectDoesNotExist as e:
-    result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
-    return makeResponse(request, result)
+def vend(request, tool_id, item_requested, card_id):
+  with transaction.atomic():
+      try:
+          t = Tool.objects.get(pk=tool_id)
+      except ObjectDoesNotExist as e:
+          result = {'status' : 'Error', 'reason' : 'Tool does not exist'}
+          return HttpResponse(json.dumps(result), content_type='application/json')
+      try:
+          m = MachineItem.objects.get(tool__pk=tool_id, position=item_requested)
+      except ObjectDoesNotExist as e:
+          result = {'status' : 'Error', 'reason' : 'Item does not exist for tool'}
+          return HttpResponse(json.dumps(result), content_type='application/json')
+      try:
+          u = Card.objects.get(card_id=card_id).user
+      except ObjectDoesNotExist as e:
+          result = {'status' : 'Error', 'reason' : 'User does not exist'}
+          return HttpResponse(json.dumps(result), content_type='application/json')
+      if u.balance < m.item.price:
+          result = {'status' : 'Error', 'reason' : 'insufficient balance'}
+          return HttpResponse(json.dumps(result), content_type='application/json')
+      if not(u.subscribed):
+          result = {'status' : 'Error', 'reason' : 'Not subscribed'}
+          return HttpResponse(json.dumps(result), content_type='application/json')
+      u.balance = u.balance - m.item.price
+      u.save()
+      t.balance = t.balance + m.item.price
+      t.save()
+      result = {'status' : 'Success'}
+      #log vend here
+      return HttpResponse(json.dumps(result), content_type='application/json')
 
-  try:
-    c = Card.objects.get(card_id=card_id)
-  except ObjectDoesNotExist as e:
-    result = { 'numeric_status' : 0, 'error' : 'Card does not exist'}
-    return makeResponse(request, result)
+@check_secret
+@check_ip
+@require_GET
+def addbalance(request, tool_id, amount, card_id):
+  with transaction.atomic():
+    try:
+        t = Tool.objects.get(pk=tool_id)
+    except ObjectDoesNotExist as e:
+        result = {'status' : 'Error'}
+        return HttpResponse(json.dumps(result), content_type='application/json')
+        #log error
+    try:
+        u = Card.objects.get(card_id=card_id).user
+    except ObjectDoesNotExist as e:
+        result = {'status' : 'Error'}
+        return HttpResponse(json.dumps(result), content_type='application/json')
+        #log machine fault, possibly put out of service (maybe in the json response? {'status' : 'fault'})
+        #The machine should only accept money when a verified (by server) card is used
+    u.balance = u.balance + int(amount)
+    u.save()
+    t.balance = t.balance + int(amount)
+    t.save()
+    result = {'status' : 'Success'}
+    return HttpResponse(json.dumps(result), content_type='application/json')
 
-  if not c.user.subscribed:
-    # needs to be subscribed to be a user
-    result = { 'numeric_status' : 0, 'error' : 'Card is not subscribed'}
-    return makeResponse(request, result)
-
-  c.user.balance = new_balance
-  c.user.save()
-
-
-  result = { 'numeric_status' : 1, 'success' : 'Balance Updated'}
-  l = Log(tool=t, user=c.user, message="Balance updated to : " + new_balance)
-  l.save()
-  return makeResponse(request, result)
 
 @check_secret
 @check_ip
@@ -262,7 +277,7 @@ def updatestock(request, tool_id, item_requested, new_stock):
     result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
     return makeResponse(request, result)
   try:
-    i = Venditem.objects.get(item = item_requested)
+    i = VendItem.objects.get()
   except ObjectDoesNotExist as e:
     result = { 'numeric_status' : -1, 'error' : 'Item does not exist'}
     return makeResponse(request, result)
