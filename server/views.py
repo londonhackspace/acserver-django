@@ -9,12 +9,12 @@ from django.db.models import Sum
 from django.db import transaction
 from .models import Tool, Card, User, Permission, ToolUseTime, Log, VendItem, MachineItem
 
-import json, logging, datetime, time
+import json, logging, datetime, time, syslog
 from netaddr import IPAddress, IPNetwork
 from functools import wraps
 from pytz import timezone
 
-
+syslog.openlog(ident="ACServer")
 logger = logging.getLogger('django.request')
 
 # try different ways of getting the remote ip.
@@ -53,6 +53,7 @@ def check_secret(func):
                         'request': request
                     }
                 )
+          syslog.syslog('Missing secret key for tool %d // %s from %s' % (tool.id, request.path, ip))
           result = { 'numeric_status' : -1, 'error' : 'Missing Secret'}
           return makeResponse(request, result)
 
@@ -63,6 +64,7 @@ def check_secret(func):
                         'request': request
                     }
                 )
+          syslog.syslog('Wrong secret key for tool %d // %s from %s, expected %s, got %s' % (tool.id, request.path, ip, tool.secret, request.META['HTTP_X_AC_KEY']))
           result = { 'numeric_status' : -1, 'error' : 'Incorrect Secret'}
           return makeResponse(request, result)
       else:
@@ -74,6 +76,7 @@ def check_secret(func):
                         'request': request
                     }
                 )
+          syslog.syslog('tool %d sent a secret key, but we don\'t have one for it! // %s from %s' % (tool.id, request.path, ip))
       return func(request, *args, **kwargs)
     return inner
   return _decorator(func)
@@ -88,6 +91,7 @@ def check_ip(func):
             'status_code': 403,
             'request': request
         })
+        syslog.syslog("Unable to get remote IP")
         return HttpResponse('IP forbidden\n', status=403, content_type='text/plain')
       if IPAddress(ip) not in IPNetwork(settings.ACNODE_IP_RANGE):
         logger.warning('invalid access attempt from %s', ip,
@@ -96,6 +100,7 @@ def check_ip(func):
                         'request': request
                     }
               )
+        syslog.syslog('invalid access attempt from %s' % (ip))
         return HttpResponse('IP forbidden\n', status=403, content_type='text/plain')
       return func(request, *args, **kwargs)
     return inner
@@ -119,7 +124,7 @@ def status(request, tool_id):
 @check_secret
 @check_ip
 @require_GET
-def card(request, tool_id, card_id):
+def card(request, tool_id, card_id):  
   ip = get_ip(request)
   try:
     t = Tool.objects.get(pk=tool_id)
@@ -130,6 +135,7 @@ def card(request, tool_id, card_id):
                     'request': request
                 }
             )
+    syslog.syslog('Tool does not exist for %s // %s from %s' % (request.method, request.path, ip))
     result = { 'numeric_status' : -1, 'error' : 'Tool does Not Exist' }
     return makeResponse(request, result)
 
@@ -142,6 +148,7 @@ def card(request, tool_id, card_id):
                     'request': request
                 }
             )
+    syslog.syslog('Card does not exist for %s // %s from %s' % (request.method, request.path, ip))
     result = { 'numeric_status' : -1, 'error' : 'Card does Not Exist' }
     return makeResponse(request, result)
 
@@ -161,6 +168,7 @@ def card(request, tool_id, card_id):
                     'request': request
                 }
             )
+    syslog.syslog('user is not subscribed for %s // %s from %s' % (request.method, request.path, ip))
     # log unsubscribed user tried to use tool.
     result['numeric_status'] = -1
     perm_text = 'Not Subscribed'
@@ -177,6 +185,7 @@ def card(request, tool_id, card_id):
                   'request': request
               }
           )
+  syslog.syslog('returning perm %d for %s // %s from %s' % (result['numeric_status'], request.method, request.path, ip))
   if result['numeric_status'] <= 0:
     result['error'] = perm_text
   else:
@@ -215,30 +224,41 @@ def vend(request, tool_id, item_requested, card_id):
       try:
           t = Tool.objects.get(pk=tool_id)
       except ObjectDoesNotExist as e:
-          result = {'status' : 'Error', 'reason' : 'Tool does not exist'}
+          result = {'status' : 'Error', 'reason' : 'invalid tool'}
+          syslog.syslog("VEND FAIL : Vend from tool ID %s : Tool does not exist" % (tool_id))
           return HttpResponse(json.dumps(result), content_type='application/json')
       try:
           m = MachineItem.objects.get(tool__pk=tool_id, position=item_requested)
       except ObjectDoesNotExist as e:
-          result = {'status' : 'Error', 'reason' : 'Item does not exist for tool'}
+          result = {'status' : 'Error', 'reason' : 'invalid item'}
+          syslog.syslog("VEND FAIL : Vend from tool ID %s : requested non existent item %s" % (tool_id, item_requested))
           return HttpResponse(json.dumps(result), content_type='application/json')
       try:
           u = Card.objects.get(card_id=card_id).user
       except ObjectDoesNotExist as e:
-          result = {'status' : 'Error', 'reason' : 'User does not exist'}
+          result = {'status' : 'Error', 'reason' : 'invalid user'}
+          syslog.syslog("VEND FAIL : Vend from tool ID %s : Card ID %s does not correspond to a user" % (tool_id, card_id))
           return HttpResponse(json.dumps(result), content_type='application/json')
       if u.balance < m.item.price:
           result = {'status' : 'Error', 'reason' : 'insufficient balance'}
+          syslog.syslog("VEND FAIL: Vend from tool ID %s : User %s has insufficient balance" % (tool_id, u.lhsid()))
           return HttpResponse(json.dumps(result), content_type='application/json')
       if not(u.subscribed):
-          result = {'status' : 'Error', 'reason' : 'Not subscribed'}
+          result = {'status' : 'Error', 'reason' : 'user not subscribed'}
+          syslog.syslog("VEND FAIL: Vend from tool ID %s : User %s is not currently a member" % (tool_id, u.lhsid()))
+          return HttpResponse(json.dumps(result), content_type='application/json')
+      if m.stock < 1:
+          result = {'status' : 'Error', 'reason' : 'item out of stock'}
+          syslog.syslog("VEND FAIL : Vend from tool ID %s : Item %s out of stock" % (tool_id, m.item.name))
           return HttpResponse(json.dumps(result), content_type='application/json')
       u.balance = u.balance - m.item.price
       u.save()
       t.balance = t.balance + m.item.price
       t.save()
+      m.stock = m.stock - 1
+      m.save()
       result = {'status' : 'Success'}
-      #log vend here
+      syslog.syslog("VEND SUCCESS : vend from tool ID %s : vended %s to %s" % (tool_id, item_requested, u.lhsid()))
       return HttpResponse(json.dumps(result), content_type='application/json')
 
 @check_secret
@@ -249,21 +269,21 @@ def addbalance(request, tool_id, amount, card_id):
     try:
         t = Tool.objects.get(pk=tool_id)
     except ObjectDoesNotExist as e:
-        result = {'status' : 'Error'}
+        result = {'status' : 'Error', 'reason' : 'invalid tool'}
+        syslog.syslog("BALANCE UPDATE FAIL : adding %s to %s : tool %s does not exist" % (amount, card_id, tool_id))
         return HttpResponse(json.dumps(result), content_type='application/json')
-        #log error
     try:
         u = Card.objects.get(card_id=card_id).user
     except ObjectDoesNotExist as e:
-        result = {'status' : 'Error'}
+        result = {'status' : 'Error', 'reason' : 'invalid user'}
+        syslog.syslog("BALANCE UPDATE FAIL : adding %s to %s : user does not exist" % (amount, card_id))
         return HttpResponse(json.dumps(result), content_type='application/json')
-        #log machine fault, possibly put out of service (maybe in the json response? {'status' : 'fault'})
-        #The machine should only accept money when a verified (by server) card is used
     u.balance = u.balance + int(amount)
     u.save()
     t.balance = t.balance + int(amount)
     t.save()
     result = {'status' : 'Success'}
+    syslog.syslog("BALANCE UPDATE SUCCESS : added %s to %s" % (amount, u.lhsid()))
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 
@@ -274,18 +294,22 @@ def updatestock(request, tool_id, item_requested, new_stock):
   try:
     t = Tool.objects.get(pk=tool_id)
   except ObjectDoesNotExist as e:
-    result = { 'numeric_status' : -1, 'error' : 'Tool does not exist'}
-    return makeResponse(request, result)
+    result = {'status' : 'Error', 'reason' : 'Tool does not exist'}
+    return HttpResponse(json.dumps(result), content_type='application/json')
   try:
     i = VendItem.objects.get()
   except ObjectDoesNotExist as e:
-    result = { 'numeric_status' : -1, 'error' : 'Item does not exist'}
-    return makeResponse(request, result)
-
-  i.stock = int(new_stock)
-  i.save()
-  result = { 'numeric_status' : 1, 'success' : 'Stock Updated'}
-  return makeResponse(request, result)
+    result = {'status' : 'Error', 'reason' : 'Tool does not exist'}
+    return HttpResponse(json.dumps(result), content_type='application/json')
+  try:
+    m = MachineItem.objects.get(tool__pk=tool_id, position=item_requested)
+  except ObjectDoesNotExist as e:
+    result = {'status' : 'Error', 'reason' : 'invalid item'}
+    return HttpResponse(json.dumps(result), content_type='application/json')
+  m.stock = int(new_stock)
+  m.save()
+  result = {'status' : 'Success'}
+  return HttpResponse(json.dumps(result), content_type='application/json')
 
 @check_secret
 @check_ip
@@ -376,10 +400,11 @@ def settoolstatus(request, tool_id, status, card_id):
   if status == 0:
     l = Log(tool=t, user=c.user, message="Tool taken out of service")
     l.save()
+    syslog.syslog("Tool %s taken out of service" % (tool_id))
   elif status == 1:
     l = Log(tool=t, user=c.user, message="Tool put into service")
     l.save()
-
+    syslog.syslog("Tool %s put into service" % (tool_id))
   result = { 'numeric_status' : 1, 'success' : 'Tool status updated'}
   return makeResponse(request, result)
 
@@ -413,6 +438,7 @@ def settooluse(request, tool_id, status, card_id):
 
   l = Log(tool=t, user=c.user, message=message)
   l.save()
+  syslog.syslog("%s on tool %s by %s" % (message, tool_id, c.user.lhsid()))
 
   result = { 'numeric_status' : 1, 'success' : 'Tool usage logged'}
   return makeResponse(request, result)
@@ -457,6 +483,7 @@ def settoolusetime(request, tool_id, card_id, duration):
 
   l = Log(tool=t, user=c.user, message="Tool used for %d seconds" % (int(duration),), time=int(duration))
   l.save()
+  syslog.syslog("Tool %d used for %s seconds" % (tool_id, duration))
 
   result = { 'numeric_status' : 1, 'success' : 'Tool usage logged'}
   return makeResponse(request, result)
@@ -477,6 +504,7 @@ def require_api_key(func):
                         'request': request
                     }
                 )
+        syslog.syslog("Missing API key for %s // %s from %s" % (request.method, request.path, ip))
         return HttpResponseUnauthorized("API Key required")
       if request.META['HTTP_API_KEY'] != settings.ACS_API_KEY:
         logger.warning('wrong API key: %s for %s // %s from %s', request.META['HTTP_API_KEY'], request.method, request.path, ip,
@@ -485,6 +513,7 @@ def require_api_key(func):
                         'request': request
                     }
                 )
+        syslog.syslog("Wrong API key: %s for %s // %s from %s" % (request.META['HTTP_API_KEY'], request.method, request.path, ip))
         return HttpResponseUnauthorized("HTTP Error 401: Forbidden")
       return func(request, *args, **kwargs)
     return inner
