@@ -45,7 +45,7 @@ def check_secret(func):
       ip = get_ip(request)
       if tool.secret != None and tool.secret != "":
         if 'HTTP_X_AC_KEY' not in request.META:
-          # the tool has a secret, but it's wasn't sent
+          # the tool has a secret, but it wasn't sent
           # so just fail it.
           logger.critical('Missing secret key for tool %d // %s from %s', tool.id, request.path, ip,
                     extra={
@@ -296,10 +296,8 @@ def updatestock(request, tool_id, item_requested, new_stock):
   except ObjectDoesNotExist as e:
     result = {'status' : 'Error', 'reason' : 'Tool does not exist'}
     return HttpResponse(json.dumps(result), content_type='application/json')
-  try:
-    i = VendItem.objects.get()
-  except ObjectDoesNotExist as e:
-    result = {'status' : 'Error', 'reason' : 'Tool does not exist'}
+  if int(new_stock) < 0:
+    result = {'status' : 'Error', 'reason' : 'new stock less than 0'}
     return HttpResponse(json.dumps(result), content_type='application/json')
   try:
     m = MachineItem.objects.get(tool__pk=tool_id, position=item_requested)
