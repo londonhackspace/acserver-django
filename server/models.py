@@ -100,7 +100,7 @@ class Card(models.Model):
 
 class Permission(models.Model):
   user = models.ForeignKey(User, on_delete=models.CASCADE)
-  tool = models.ForeignKey(Tool, on_delete=models.CASCADE)
+  tool = models.ForeignKey(Tool, on_delete=models.CASCADE, related_name='permissions')
   permission = models.PositiveIntegerField(choices = ((1, "user"),(2, "maintainer")))
   addedby = models.ForeignKey(User, related_name="addedpermission", on_delete=models.CASCADE)
   date = models.DateTimeField()

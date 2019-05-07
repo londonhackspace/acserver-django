@@ -24,6 +24,29 @@ class ToolAdmin(admin.ModelAdmin):
   list_editable = ('status', 'status_message', 'type')
   list_filter = ('status', 'type')
 
+  def get_queryset(self, request):
+    qs = super().get_queryset(request)
+    # if a superuser, return the lot
+    if request.user.is_superuser:
+      return qs
+
+    # otherwise return tools where this user is a maintainer
+    return qs.filter(permissions__permission=2).filter(permissions__user_id=request.user.id)
+
+
+  def has_change_permission(self, request, obj=None):
+    if obj is None:
+      # allow users to see the tool table, even if they can't see the specific entry
+      return True
+
+    # is this user a maintainer on the given tool?
+    userpermission = obj.permissions.filter(user_id=request.user.id)
+    if (userpermission.count() > 0) and (userpermission.get().permission == 2):
+      return True
+
+    # otherwise, defer to the base
+    return super().has_change_permission(request, obj)
+
 class UserAdmin(admin.ModelAdmin):
   fields = (('lhsid', 'name', 'subscribed', 'gladosfile'),)
   readonly_fields = ('lhsid', 'name', 'subscribed')
