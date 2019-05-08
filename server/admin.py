@@ -59,7 +59,7 @@ class ToolAdmin(admin.ModelAdmin):
       return True
 
     # is this user a maintainer on the given tool?
-    userpermission = obj.permissions.filter(user_id=request.user.id)
+    userpermission = obj.permissions.filter(user_id=get_logged_in_user(request).id)
     if (userpermission.count() > 0) and (userpermission.get().permission == 2):
       return True
 
