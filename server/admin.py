@@ -17,6 +17,25 @@ def username_and_profile(u):
 username_and_profile.short_description = 'Name'
 username_and_profile.admin_order_field = 'user'
 
+def get_logged_in_user(request):
+  # gets a user by either LDAP or local user ID
+  if hasattr(request.user,'ldap_user'):
+    # if so get the ldap uid and subtract 100000 to get the
+    # lhs user id, and then get the associated carddb user thing.
+    user = User.objects.get(id = int(request.user.ldap_user.attrs['uidnumber'][0]) - 100000)
+  else:
+    # not an ldap user - this will be local testing
+    try:
+      user = User.objects.get(id=request.user.id)
+    except ObjectDoesNotExist:
+      # darn, the user logged into the admin interface
+      # does not have a correspoinding carddb user...
+      # since this won't be used on the live site
+      # lets just try uid 1
+      user = User.objects.get(id=1)
+      logger.critical('Can\'t find carddb user for django user %d, using user id 1 instead', request.user.id)
+  return user
+
 class ToolAdmin(admin.ModelAdmin):
   readonly_fields = ('inuse', 'inuseby')
   list_display = ('id', 'name', 'status', 'status_message', 'secret', 'inuse', 'inuseby', 'type')
@@ -31,7 +50,7 @@ class ToolAdmin(admin.ModelAdmin):
       return qs
 
     # otherwise return tools where this user is a maintainer
-    return qs.filter(permissions__permission=2).filter(permissions__user_id=request.user.id)
+    return qs.filter(permissions__permission=2, permissions__user_id=get_logged_in_user(request).id)
 
 
   def has_change_permission(self, request, obj=None):
@@ -66,21 +85,7 @@ class PermissionAdmin(admin.ModelAdmin):
 
   def save_model(self, request, obj, form, change):
     # are we running with an ldap backend?
-    if hasattr(request.user,'ldap_user'):
-      # if so get the ldap uid and subtract 100000 to get the
-      # lhs user id, and then get the associated carddb user thing.
-      user = User.objects.get(id = int(request.user.ldap_user.attrs['uidnumber'][0]) - 100000)
-    else:
-      # get the user thats doing the adding
-      try:
-        user = User.objects.get(id=request.user.id)
-      except ObjectDoesNotExist:
-        # darn, the user logged into the admin interface
-        # does not have a correspoinding carddb user...
-        # since this won't be used on the live site
-        # lets just try uid 1
-        user = User.objects.get(id=1)
-        logger.critical('Can\'t find carddb user for django user %d, using user id 1 instead', request.user.id)
+    user = get_logged_in_user(request)
     obj.addedby = user
     obj.save()
 
