@@ -4,7 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.admin import UserAdmin as DJUserAdmin
 from django.contrib.auth.models import User as DJUser
 
-from .models import Tool, User, Card, Permission, Log, DJACUser
+from .models import Tool, User, VendItem, MachineItem, Card, Permission, Log, DJACUser
 
 import logging
 
@@ -48,11 +48,23 @@ class ToolAdmin(admin.ModelAdmin):
     return super().has_change_permission(request, obj)
 
 class UserAdmin(admin.ModelAdmin):
-  fields = (('lhsid', 'name', 'subscribed', 'gladosfile'),)
+  fields = (('lhsid', 'name', 'subscribed', 'gladosfile', 'balance'),)
   readonly_fields = ('lhsid', 'name', 'subscribed')
-  list_display = ('id', 'lhsid', 'username_and_profile', 'subscribed',)
+  list_display = ('id', 'lhsid', 'username_and_profile', 'subscribed', 'balance',)
   search_fields = ('name','id')
   list_filter = ('subscribed',)
+
+class VendAdmin(admin.ModelAdmin):
+  fields = (('name', 'price', 'decimalprice'),)
+  readonly_fields = ('decimalprice',)
+  list_display = ('name','decimalprice')
+  search_fields = ('name',)
+
+class MachineAdmin(admin.ModelAdmin):
+    fields = (('item', 'tool', 'position', 'stock',),)
+    list_display = ('item', 'tool', 'position', 'stock',)
+    search_fields = ('item', 'position')
+    list_filter = ('tool', 'position',)
 
 class CardAdmin(admin.ModelAdmin):
   fields = (('user', 'card_id'),)
@@ -99,5 +111,7 @@ admin.site.register(DJACUser, DJUserAdmin)
 admin.site.register(Tool, ToolAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(Card, CardAdmin)
+admin.site.register(VendItem, VendAdmin)
+admin.site.register(MachineItem, MachineAdmin)
 admin.site.register(Permission, PermissionAdmin)
 admin.site.register(Log, LogAdmin)

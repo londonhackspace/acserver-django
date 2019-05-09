@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.contrib.auth.models import User as DJUser
 
 import sys, datetime, logging
+#Vending Machine Stock
+
 
 # user
 class User(models.Model):
@@ -20,6 +22,7 @@ class User(models.Model):
   name = models.TextField()
   subscribed = models.BooleanField(default=False, choices = ((True, "Subscribed"), (False, "Not Subscribed")))
   gladosfile = models.TextField(blank=True)
+  balance = models.PositiveIntegerField(default=0)#Balance in pence
 
   def __unicode__(self):
     o = u"%s : '%s' (%s)" % (self.lhsid(), self.name, self.get_subscribed_display(),)
@@ -61,6 +64,7 @@ class Tool(models.Model):
 
   name = models.TextField()
   status = models.PositiveIntegerField(default=0, choices = ((1, "Operational"), (0, "Out of service")))
+  balance = models.PositiveIntegerField(default=0)
   # If a tool is in service the status_message should be 'OK'
   # cos the website depends on that :/
   status_message = models.TextField()
@@ -77,6 +81,23 @@ class Tool(models.Model):
 
   def __str__(self):
     return self.__unicode__()
+
+class VendItem(models.Model):
+  name = models.TextField(default = '')
+  price = models.PositiveIntegerField(default = 0) # Price in pence
+  def decimalprice(self):
+    return u"£%.2f" % (self.price / 100)
+  def __str__(self):
+      return self.name
+
+class MachineItem(models.Model):
+  item = models.ForeignKey(VendItem)
+  tool = models.ForeignKey(Tool)
+  position = models.PositiveIntegerField()
+  stock = models.PositiveIntegerField()
+  def __str__(self):
+    return u"%s on tool %d" % (self.item.name, self.tool.id)
+
 
 
 class ToolUseTime(models.Model):
