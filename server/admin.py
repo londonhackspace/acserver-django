@@ -36,6 +36,10 @@ def get_logged_in_user(request):
       logger.critical('Can\'t find carddb user for django user %d, using user id 1 instead', request.user.id)
   return user
 
+def is_user_a_tool_maintainer(request):
+  po = Permission.objects.filter(permission=2, user_id=get_logged_in_user(request).id)
+  return po.count() > 0 or request.user.is_superuser
+
 class ToolAdmin(admin.ModelAdmin):
   readonly_fields = ('inuse', 'inuseby')
   list_display = ('id', 'name', 'status', 'status_message', 'secret', 'inuse', 'inuseby', 'type')
@@ -55,8 +59,8 @@ class ToolAdmin(admin.ModelAdmin):
 
   def has_change_permission(self, request, obj=None):
     if obj is None:
-      # allow users to see the tool table, even if they can't see the specific entry
-      return True
+      # allow maintainers to see the tool table
+      return is_user_a_tool_maintainer(request)
 
     # is this user a maintainer on the given tool?
     userpermission = obj.permissions.filter(user_id=get_logged_in_user(request).id)
@@ -65,6 +69,9 @@ class ToolAdmin(admin.ModelAdmin):
 
     # otherwise, defer to the base
     return super().has_change_permission(request, obj)
+
+  def has_module_permission(self, request):
+    return is_user_a_tool_maintainer(request)
 
 class UserAdmin(admin.ModelAdmin):
   fields = (('lhsid', 'name', 'subscribed', 'gladosfile'),)
@@ -89,12 +96,86 @@ class PermissionAdmin(admin.ModelAdmin):
     obj.addedby = user
     obj.save()
 
+  def has_module_permission(self, request):
+    return is_user_a_tool_maintainer(request)
+
+  def has_change_permission(self, request, obj=None):
+    if obj is None:
+      return is_user_a_tool_maintainer(request)
+
+    # is this user a maintainer on the tool this permission refers to?
+    userpermission = obj.tool.permissions.filter(user_id=get_logged_in_user(request).id)
+    if (userpermission.count() > 0) and (userpermission.get().permission == 2):
+      # users cannot edit their own permissions (unless a superuser)
+      # this is actually to prevent users locking themselves out
+      if obj.user_id == get_logged_in_user(request).id:
+        return request.user.is_superuser
+      return True
+
+    # otherwise, defer to the base
+    return super().has_change_permission(request, obj)
+
+  def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    # allow the user to select only tools they are a maintainer of
+    if db_field.name == "tool" and not request.user.is_superuser:
+      kwargs["queryset"] = Tool.objects.filter(permissions__permission=2, permissions__user_id=get_logged_in_user(request).id)
+
+    return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+  def has_view_permission(self, request, obj=None):
+    if obj is None:
+      return is_user_a_tool_maintainer(request)
+
+    # is this user a maintainer on the tool this permission refers to?
+    userpermission = obj.tool.permissions.filter(user_id=get_logged_in_user(request).id)
+    if (userpermission.count() > 0) and (userpermission.get().permission == 2):
+      return True
+
+    # otherwise, defer to the base
+    return super().has_view_permission(request, obj)
+
+  def has_add_permission(self, request):
+    return is_user_a_tool_maintainer(request)
+
+  def get_queryset(self, request):
+    qs = super().get_queryset(request)
+    # if a superuser, return the lot
+    if request.user.is_superuser:
+      return qs
+
+    # otherwise return tools where this user is a maintainer
+    return qs.filter(tool__permissions__permission=2, tool__permissions__user_id=get_logged_in_user(request).id)
+
 class LogAdmin(admin.ModelAdmin):
   fields = (('tool', 'user', 'date', 'message'),)
   list_display = ('tool', username_and_profile, 'date', 'message')
   list_filter = ('tool',)
   readonly_fields = ('tool', 'user', 'date', 'message')
   search_fields = ('user__name',)
+
+  def has_module_permission(self, request):
+    return is_user_a_tool_maintainer(request)
+
+  def has_view_permission(self, request, obj=None):
+    if obj is None:
+      return is_user_a_tool_maintainer(request)
+
+    # is this user a maintainer on the tool this permission refers to?
+    userpermission = obj.tool.permissions.filter(user_id=get_logged_in_user(request).id)
+    if (userpermission.count() > 0) and (userpermission.get().permission == 2):
+      return True
+
+    # otherwise, defer to the base
+    return super().has_view_permission(request, obj)
+
+  def get_queryset(self, request):
+    qs = super().get_queryset(request)
+    # if a superuser, return the lot
+    if request.user.is_superuser:
+      return qs
+
+    # otherwise return tools where this user is a maintainer
+    return qs.filter(tool__permissions__permission=2, tool__permissions__user_id=get_logged_in_user(request).id)
 
 # we don't want to use the Django User object in the admin
 # substitute it with our own
