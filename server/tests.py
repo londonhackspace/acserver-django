@@ -470,6 +470,61 @@ class ToolTests(TestCase):
     self.assertEqual(ret['numeric_status'], 0)
     self.assertTrue('error' in ret)
 
+  def test_maintainer_list(self):
+    client = Client()
+
+    resp = client.get('/1/maintainers')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+
+    expected = ['00112233445566', 'aabbccdd']
+
+    self.assertEqual(ret, expected)
+
+  # test with a tool that doesn't have any maintainers
+  def test_maintainer_list_empty(self):
+    client = Client()
+
+    resp = client.get('/2/maintainers')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+
+    expected = []
+
+    self.assertEqual(ret, expected)
+
+  # test that unsubscribed users do not appear
+  def test_maintainer_unsubscribed_user(self):
+    client = Client()
+
+    u = User.objects.get(pk=1)
+    u.subscribed = False
+    u.save()
+
+    resp = client.get('/1/maintainers')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+
+    expected = []
+
+    self.assertEqual(ret, expected)
+
+  # test with multiple maintainers
+  def test_maintainer_multiple_maintainers(self):
+    client = Client()
+
+    p = Permission.objects.get(user_id = 2, tool_id = 1)
+    p.permission = 2
+    p.save()
+
+    resp = client.get('/1/maintainers')
+    self.assertEqual(resp.status_code, 200)
+    ret = json.loads(resp.content.decode("utf-8"))
+
+    expected = ['22222222', '00112233445566', 'aabbccdd']
+
+    self.assertEqual(ret, expected)
+
   # apikey tests
   # API-KEY: 'KEY GOES HERE'
   def test_get_tools_summary_for_user(self):
