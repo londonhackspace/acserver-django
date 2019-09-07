@@ -71,6 +71,8 @@ class ToolAdmin(admin.ModelAdmin):
     return super().has_change_permission(request, obj)
 
   def has_module_permission(self, request):
+    if not request.user.is_authenticated:
+      return super().has_module_permission(request)
     return is_user_a_tool_maintainer(request)
 
 class UserAdmin(admin.ModelAdmin):
@@ -97,6 +99,8 @@ class PermissionAdmin(admin.ModelAdmin):
     obj.save()
 
   def has_module_permission(self, request):
+    if not request.user.is_authenticated:
+      return super().has_module_permission(request)
     return is_user_a_tool_maintainer(request)
 
   def has_change_permission(self, request, obj=None):
@@ -154,6 +158,8 @@ class LogAdmin(admin.ModelAdmin):
   search_fields = ('user__name',)
 
   def has_module_permission(self, request):
+    if not request.user.is_authenticated:
+      return super().has_module_permission(request)
     return is_user_a_tool_maintainer(request)
 
   def has_view_permission(self, request, obj=None):

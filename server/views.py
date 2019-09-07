@@ -118,6 +118,33 @@ def status(request, tool_id):
 @check_secret
 @check_ip
 @require_GET
+def maintainerlist(request, tool_id):
+  maintainer_list = []
+
+  try:
+    t = Tool.objects.get(pk=tool_id)
+    permissions = t.permissions.filter(permission=2)
+    for p in permissions:
+      if p.user.subscribed:
+        cards = Card.objects.filter(user=p.user)
+        for c in cards:
+          maintainer_list.append(c.card_id)
+
+  except ObjectDoesNotExist as e:
+    logger.warning('Tool does not exist for %s // %s from %s', request.method, request.path, ip,
+                extra={
+                    'status_code': 200,
+                    'request': request
+                }
+            )
+    result = { 'numeric_status' : -1, 'error' : 'Tool does Not Exist' }
+    return HttpResponse(json.dumps(result), content_type='application/json')
+
+  return HttpResponse(json.dumps(maintainer_list), content_type='application/json')
+
+@check_secret
+@check_ip
+@require_GET
 def card(request, tool_id, card_id):
   ip = get_ip(request)
   try:

@@ -13,6 +13,8 @@ urlpatterns = [
     url(r'^(?P<tool_id>\d+)/status/$', server.views.status),
 #/1/card/12345678
     url(r'^(?P<tool_id>\d+)/card/(?P<card_id>[a-fA-F0-9]+)$', server.views.card),
+#/1/maintainers
+    url(r'^(?P<tool_id>\d+)/maintainers$', server.views.maintainerlist),
 #/1/grant-to-card/12345678/by-card/00112233445566
     url(r'^(?P<tool_id>\d+)/grant-to-card/(?P<to_cardid>[a-fA-F0-9]+)/by-card/(?P<by_cardid>[a-fA-F0-9]+)$', server.views.granttocard),
 #/1/status/0/by/33333333
