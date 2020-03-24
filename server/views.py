@@ -195,6 +195,13 @@ def card(request, tool_id, card_id):
     result['user_name'] = c.user.name
     result['user_id'] = c.user.id
 
+  # covid-19 - if the user is not explicitly known to this tool/door,
+  # pretend they don't exist.
+  # This will effectively make doors behave like tools - as in, a whitelist of users
+  if result['numeric_status'] == 0:
+    perm_text = 'COVID-19 Exclusion'
+    result['numeric_status'] = -1
+
   logger.info('returning perm %d for %s // %s from %s', result['numeric_status'],
               request.method, request.path, ip,
               extra={
