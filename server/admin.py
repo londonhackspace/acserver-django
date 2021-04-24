@@ -42,9 +42,9 @@ def is_user_a_tool_maintainer(request):
 
 class ToolAdmin(admin.ModelAdmin):
   readonly_fields = ('inuse', 'inuseby')
-  list_display = ('id', 'name', 'status', 'status_message', 'secret', 'inuse', 'inuseby', 'type')
+  list_display = ('id', 'name', 'status', 'status_message', 'secret', 'inuse', 'inuseby', 'type', 'mqtt_name')
   search_fields = ('name','id')
-  list_editable = ('status', 'status_message', 'type')
+  list_editable = ('status', 'status_message', 'type', 'mqtt_name')
   list_filter = ('status', 'type')
 
   def get_queryset(self, request):
