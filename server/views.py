@@ -452,7 +452,8 @@ def get_tools_status(request):
                 'status': t.get_status_display(),
                 'status_message' : t.status_message,
                 'in_use' : t.get_inuse_display(),
-                'type' : t.get_type_display()
+                'type' : t.get_type_display(),
+                'mqtt_name': t.mqtt_name
               })
 
   return HttpResponse(json.dumps(ret), content_type='application/json')

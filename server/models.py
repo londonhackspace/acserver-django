@@ -70,6 +70,10 @@ class Tool(models.Model):
   secret = models.CharField(max_length=8, blank=True, default="")
   secret.help_text = "The shared secret to use with the acnode, only for version 0.8 or better acnodes"
 
+  mqtt_name = models.TextField(blank=True)
+  mqtt_name.help_text = """The MQTT name of the node. This is the second part of the path.
+                        "Not used by ACServer directly, but appears in API responses"""
+
   type = models.IntegerField(choices=TYPE_CHOICES, default=TYPE_TOOL)
 
   def __unicode__(self):
