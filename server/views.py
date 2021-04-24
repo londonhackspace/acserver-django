@@ -448,7 +448,8 @@ def get_tools_status(request):
   ret = []
   # [{u'status': u'Operational', u'status_message': u'working ok', u'name': u'test_tool', u'in_use': u'no'}]
   for t in Tool.objects.order_by('pk'):
-    ret.append({'name': t.name,
+    ret.append({'id': t.id,
+                'name': t.name,
                 'status': t.get_status_display(),
                 'status_message' : t.status_message,
                 'in_use' : t.get_inuse_display(),
