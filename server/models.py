@@ -72,7 +72,9 @@ class Tool(models.Model):
 
   mqtt_name = models.TextField(blank=True)
   mqtt_name.help_text = """The MQTT name of the node. This is the second part of the path.
-                        "Not used by ACServer directly, but appears in API responses"""
+                        "Not used by ACServer directly, but appears in API responses.
+                        This does NOT include the door/ or tool/ prefix - that can be implied
+                        from the tool type"""
 
   type = models.IntegerField(choices=TYPE_CHOICES, default=TYPE_TOOL)
 
