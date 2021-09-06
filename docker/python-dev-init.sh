@@ -21,5 +21,7 @@
 #   psql $DB < etc/restore-multicolumn-pks.sql
 # fi
 
-. venv/bin/activate && python manage.py runserver 0.0.0.0:9002
+pwd
+ls
+. /opt/venv/bin/activate && python manage.py runserver 0.0.0.0:9002
 

@@ -10,7 +10,7 @@ services:
     ports:
       - 9002:80
     volumes:
-      - .:/app
+      - .:/app:z
     depends_on:
       - db
     networks:
