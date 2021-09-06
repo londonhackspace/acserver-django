@@ -1,0 +1,35 @@
+FROM debian:jessie
+# FROM python:3.9
+
+RUN apt-get update && \
+    apt-get -y install \
+      libldap2-dev \
+      libpq-dev \
+      libsasl2-dev \
+      postgresql-client \
+      python3-dev \
+      python-django \
+      python-django-auth-ldap \
+      python-sqlite \
+      python-psycopg2 \
+      python-netaddr \
+      python-pip \
+      vim \
+      virtualenv
+
+WORKDIR /app
+
+RUN ls
+# RUN python3 -m venv venv
+RUN virtualenv -p python3 venv
+RUN . venv/bin/activate && pip install --upgrade pip==19.1.1
+
+COPY requirements.txt .
+RUN . venv/bin/activate && pip install -r requirements.txt
+
+COPY . .
+
+EXPOSE 80
+
+CMD ["docker/python-dev-init.sh"]
+

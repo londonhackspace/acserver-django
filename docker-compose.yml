@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+
+  python:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-python
+    environment:
+      DJANGO_SETTINGS_MODULE: acserver.settings
+    ports:
+      - 9002:80
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    networks:
+      - acserver
+
+  db:
+    image: "mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: acserver
+      MYSQL_DATABASE: acserver
+      MYSQL_USER: acserver
+      MYSQL_PASSWORD: acserver
+    ports:
+      - 13306:3306
+    volumes:
+      - mysqldata-acserver:/var/lib/myqsl
+    networks:
+      - acserver
+
+volumes:
+  mysqldata-acserver:
+
+networks:
+  acserver:
+
