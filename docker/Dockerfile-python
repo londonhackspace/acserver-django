@@ -26,7 +26,7 @@ RUN . /opt/venv/bin/activate && pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 80
+EXPOSE 9002
 
 CMD ["docker/python-dev-init.sh"]
 

@@ -21,8 +21,4 @@
 #   psql $DB < etc/restore-multicolumn-pks.sql
 # fi
 
-. /opt/venv/bin/activate
-
-python manage.py migrate
-
-python manage.py runserver 0.0.0.0:9002
+/usr/sbin/rsyslogd -n

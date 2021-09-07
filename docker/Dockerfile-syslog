@@ -1,0 +1,24 @@
+FROM debian:buster
+
+RUN apt-get update && \
+    apt-get -y install \
+      rsyslog
+
+WORKDIR /app
+
+# RUN ls
+# # RUN python3 -m venv /opt/venv
+# RUN virtualenv -p python3 /opt/venv
+
+# # last version which supports python 3.4
+# RUN . /opt/venv/bin/activate && pip install --upgrade pip==19.1.1
+
+COPY /etc/rsyslog.conf /etc/rsyslog.conf
+# RUN . /opt/venv/bin/activate && pip install -r requirements.txt
+
+COPY . .
+
+EXPOSE 514
+
+CMD ["docker/syslog-dev-init.sh"]
+
