@@ -734,7 +734,7 @@ class SecretTests(TestCase):
     user4 = '44444444'
 
     def setUp(self):
-        self.update_carddb('0_carddb.json')
+        self.update_carddb('test_data/0_carddb.json')
         t = Tool(id=1, name='test_tool', status=1, status_message='working ok')
         t.save()
         t = Tool(id=2, name='test_tool_with_secret', status=1,
@@ -821,7 +821,7 @@ class CheckIpTests(TestCase):
 class DbUpdateTests(TestCase):
 
     def setUp(self):
-        self.update_carddb('0_carddb.json')
+        self.update_carddb('test_data/0_carddb.json')
         t = Tool(id=1, name='test_tool', status=1, status_message='working ok')
         t.save()
         # make user3 a user
@@ -854,11 +854,11 @@ class DbUpdateTests(TestCase):
     def test_cardb_updates(self):
         # this card does not exist yet
         self.assertTrue(self.querycard(self.user3a) == b'-1')
-        self.update_carddb("1_card_added_carddb.json")
+        self.update_carddb("test_data/1_card_added_carddb.json")
 
         # should exist now
         self.assertTrue(self.querycard(self.user3a) == b'1')
-        self.update_carddb("2_card_removed_carddb.json")
+        self.update_carddb("test_data/2_card_removed_carddb.json")
 
         # and now it's gone
         self.assertTrue(self.querycard(self.user3a) == b'-1')
@@ -867,12 +867,12 @@ class DbUpdateTests(TestCase):
         self.assertTrue(self.querycard(self.user3) == b'1')
 
         # un subscribe them
-        self.update_carddb("3_user_unsubscribed_carddb.json")
+        self.update_carddb("test_data/3_user_unsubscribed_carddb.json")
         # and now they don't work
         self.assertTrue(self.querycard(self.user3) == b'-1')
 
         # re-subscribe them
-        self.update_carddb("4_user_subscribed_carddb.json")
+        self.update_carddb("test_data/4_user_subscribed_carddb.json")
         # and now they should work
         self.assertTrue(self.querycard(self.user3) == b'1')
 
@@ -883,10 +883,10 @@ class DbUpdateTests(TestCase):
         self.assertEqual(ret, b'1')
 
         with self.assertRaises(CommandError):
-            self.update_carddb("empty_carddb.json")
+            self.update_carddb("test_data/empty_carddb.json")
 
         with self.assertRaises(CommandError):
-            self.update_carddb("zero_carddb.json")
+            self.update_carddb("test_data/zero_carddb.json")
 
         ret = self.querycard(self.user3)
         self.assertEqual(ret, b'1')
@@ -901,7 +901,7 @@ class DbUpdateTests(TestCase):
         #
         # but something is different in the test env. vs. the shell, so it works! (even when via | cat so
         # stdout is not a terminal)
-        self.update_carddb("unicode_carddb.json")
+        self.update_carddb("test_data/unicode_carddb.json")
 
         u = User.objects.get(id=9)
 
@@ -918,7 +918,7 @@ class DbUpdateTests(TestCase):
         #
         # This tests adding new users with overlong cards
         #
-        self.update_carddb("unicode_carddb.json")
+        self.update_carddb("test_data/unicode_carddb.json")
 
         u = User.objects.get(id=9)
         self.assertEqual(u.pk, 9)
@@ -926,7 +926,7 @@ class DbUpdateTests(TestCase):
         #
         # Doing it a 2nd time means we test updating a user who has overlong cards.
         #
-        self.update_carddb("unicode_carddb.json")
+        self.update_carddb("test_data/unicode_carddb.json")
 
     def test_user_removed_from_carddb(self):
 
@@ -935,7 +935,7 @@ class DbUpdateTests(TestCase):
         cards = user6.card_set.all()
         self.assertTrue(len(cards) > 0)
 
-        self.update_carddb("5_user_removed_carddb.json")
+        self.update_carddb("test_data/5_user_removed_carddb.json")
 
         # should now be unsubscribed and have no cards.
         user6 = User.objects.get(pk=6)
@@ -963,12 +963,12 @@ class ImportOldTests(TestCase):
         ) + os.path.sep + 'server' + os.path.sep + file, verbosity=2)
 
     def setUp(self):
-        self.update_carddb('0_carddb.json')
+        self.update_carddb('test_data/0_carddb.json')
         self.user3 = '33333333'
         self.user3a = '33333300'
 
     def test_import(self):
-        self.import_old_acserver('old-acserver-dump_0.json')
+        self.import_old_acserver('test_data/old-acserver-dump_0.json')
 
         t = Tool.objects.get(pk=1)
         self.assertTrue(t.name == 'test_tool')
@@ -978,7 +978,7 @@ class ImportOldTests(TestCase):
         self.assertTrue(p.permission == 1)
 
     def test_import_two_tools(self):
-        self.import_old_acserver('old-acserver-dump_1.json')
+        self.import_old_acserver('test_data/old-acserver-dump_1.json')
 
         t = Tool.objects.get(pk=1)
         self.assertTrue(t.name == 'test_tool')
@@ -996,7 +996,7 @@ class ImportOldTests(TestCase):
         self.assertTrue(p.permission == 2)
 
     def test_import_filter(self):
-        self.import_old_acserver('old-acserver-dump_1.json', 1)
+        self.import_old_acserver('test_data/old-acserver-dump_1.json', 1)
 
         t = Tool.objects.get(pk=1)
         self.assertTrue(t.name == 'test_tool')
@@ -1016,7 +1016,7 @@ class ImportOldTests(TestCase):
             pass
 
     def test_import_change_permission(self):
-        self.import_old_acserver('old-acserver-dump_0.json')
+        self.import_old_acserver('test_data/old-acserver-dump_0.json')
 
         t = Tool.objects.get(pk=1)
         self.assertTrue(t.name == 'test_tool')
@@ -1026,7 +1026,7 @@ class ImportOldTests(TestCase):
         self.assertTrue(p.permission == 1)
 
         # now import a newer version, in this one user 3 is now a maintainer
-        self.import_old_acserver('old-acserver-dump_2.json')
+        self.import_old_acserver('test_data/old-acserver-dump_2.json')
 
         p = Permission.objects.get(user=User.objects.get(pk=3), tool=t)
         self.assertTrue(p.permission == 2)
@@ -1039,7 +1039,7 @@ class DjangoPermsTests(TestCase):
         ) + os.path.sep + 'server' + os.path.sep + file, verbosity=2)
 
     def setUp(self):
-        self.update_carddb('0_carddb.json')
+        self.update_carddb('test_data/0_carddb.json')
         t = Tool(id=1, name='test_tool', status=1, status_message='OK')
         t.save()
         t = Tool(id=2, name='test_tool2', status=1, status_message='OK')
