@@ -1,6 +1,18 @@
-# Dependencies:
+# London Hackspace ACNode Server
 
-Assuming Debian jessie:
+## Development Environment
+
+Copy `acserver/ldap_local_settings_example.py` to `local_settings.py` remove the DB configuration and run `docker-compose up` for a functional development environment
+
+To create an initial user for testing:
+
+```
+docker-compose exec server python manage.py createsuperuser
+```
+
+## Legacy
+
+Assuming Debian/Ubuntu:
 
 ```
 apt-get install python-django python-django-auth-ldap python-sqlite python-psycopg2 python-netaddr python-pip
@@ -9,18 +21,6 @@ apt-get install python-django python-django-auth-ldap python-sqlite python-psyco
 Also and/or otherwise try running `make`, the included Makefile should build a virtualenv with the right bits in it for you. You can activate the virtualenv with `. ./venv/bin/activate`
 
 ## For LDAP syncing:
-
-```
-pip install --verbose --no-deps django-ldap-sync
-```
-
-To setup the db run:
-
-```
-./manage.py syncdb
-```
-
-If you are not using LDAP then follow the prompts to create a user for the admin.
 
 If you are usinbg LDAP run:
 
@@ -36,7 +36,7 @@ now import the carddb.json:
 ./manage.py updatecarddb /path/to/carddb.json
 ```
 
-(If you just want some initial data to test with you can use `server/0_carddb.json`)
+(If you just want some initial data to test with you can use `server/test_data/0_carddb.json`)
 
 ## Using the permissions thing with LDAP:
 
@@ -86,11 +86,11 @@ python-coverage run --source='.' manage.py test ; python-coverage html
 
 Todo:
 
-* permissions for users in the admin:
- * some can make others maintaainers for any tool
- * some users can only maintain some tools
- * most can do nothing
-* a nice page of toolusage stats
+- permissions for users in the admin:
+- some can make others maintainers for any tool
+- some users can only maintain some tools
+- most can do nothing
+- a nice page of tool usage stats
 
 future things:
-	If we get emails in the carddb then send someone an email if they are made a user or maintainer
+If we get emails in the carddb then send someone an email if they are made a user or maintainer
