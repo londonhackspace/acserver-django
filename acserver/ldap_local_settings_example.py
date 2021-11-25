@@ -35,18 +35,19 @@ LDAP_SYNC_USER_FILTER = "(&(objectClass=person))"
 
 
 AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=Users," + BASEDN,
-    ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+                                   ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch("ou=groups," + BASEDN,
-    ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)"
-    )
+                                    ldap.SCOPE_SUBTREE, "(objectClass=posixGroup)"
+                                    )
 
 # name_attr='cn'
 AUTH_LDAP_GROUP_TYPE = PosixGroupType()
 
 #AUTH_LDAP_REQUIRE_GROUP = "cn=Admins,ou=groups," + BASEDN
 
-AUTH_LDAP_USER_ATTR_MAP = {"email" : "mail"} #""first_name": "givenName", "last_name": "sn"}
+# ""first_name": "givenName", "last_name": "sn"}
+AUTH_LDAP_USER_ATTR_MAP = {"email": "mail"}
 AUTH_LDAP_PROFILE_ATTR_MAP = {"uid_number": "uidNumber", "email": "mail"}
 
 LDAP_SYNC_USER_ATTRIBUTES = {
@@ -69,10 +70,10 @@ AUTH_LDAP_PROFILE_FLAGS_BY_GROUP = {
 #
 # For TLS:
 #
-#AUTH_LDAP_GLOBAL_OPTIONS = {
+# AUTH_LDAP_GLOBAL_OPTIONS = {
 #    ldap.OPT_X_TLS_REQUIRE_CERT: True,
 #    ldap.OPT_X_TLS_DEMAND: True,
-#}
+# }
 
 #
 # postgres is nice.
@@ -83,7 +84,7 @@ DATABASES = {
         'NAME': 'acserver',
         'USER': 'username',
         'PASSWORD': 'secret123',
-        'HOST': '',  #localhost
+        'HOST': '',  # localhost
     }
 }
 

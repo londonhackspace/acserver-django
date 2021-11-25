@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from server.models import Permission
 
+
 class Command(BaseCommand):
     help = "Copies permissions from tool A to tool B"
 
