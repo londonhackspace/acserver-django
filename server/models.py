@@ -1,19 +1,15 @@
 from django.db import models
 from django.utils.html import format_html
 from django.utils import timezone
-# yes, the acserver user object is called User, same as the django one, so we call it
-# DJUser...
 from django.contrib.auth.models import User as DJUser
 
 import sys
 import datetime
 import logging
 
-# user
-
 
 class User(models.Model):
-    # the id field is created automatticly by django
+    # the id field is created automatically by django
     # we use the id's from the carddb tho
     # might want to disable auto_increment?
     # I'd like the name to be unique=True, but the carddb export does:
@@ -109,7 +105,6 @@ class ToolUseTime(models.Model):
 
 
 class Card(models.Model):
-    # foreigen key to user.id
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     # actually only need 14, the uid is stored as hex.
     card_id = models.CharField(max_length=15, db_index=True, unique=True)
@@ -164,17 +159,13 @@ class Log(models.Model):
 
 #
 # A proxy for the django User object
-# that makes all maintainers a staff member so they can log into the admin
-# UI
+# that makes all maintainers a staff member so they can log into the admin UI
+# This doesn't give them any permissions to do anything tho!
 #
-# This dosn't give them any permissions to do anything tho!
-#
-
 
 class DJACUser(DJUser):
     class Meta:
         proxy = True
-#    app_label = 'auth'
         verbose_name = 'User'
 
     def __getattribute__(self, name):
@@ -184,7 +175,7 @@ class DJACUser(DJUser):
             try:
                 acu = User.objects.get(pk=self.id)
             except Exception as e:
-                # XXX ObjectDoesNotExist if it's not an acnode user.
+                # ObjectDoesNotExist if it's not an acnode user.
                 # should never happen on the live server(?)
                 logger.critical(
                     'exception in DJACUser __getattribute__ for %s / %s : %s', str(name), str(self.id), e)
