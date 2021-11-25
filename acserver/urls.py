@@ -41,3 +41,4 @@ urlpatterns = [
     # /api/get_user_name/12345678
     url(r'^api/get_user_name/(?P<card_id>[a-fA-F0-9]+)$',
         server.views.get_user_name),
+]
