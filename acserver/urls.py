@@ -41,8 +41,3 @@ urlpatterns = [
     # /api/get_user_name/12345678
     url(r'^api/get_user_name/(?P<card_id>[a-fA-F0-9]+)$',
         server.views.get_user_name),
-    # /uitest_calheatmap1
-    url(r'^uitest_calheatmap1$', server.views.calheatmap1),
-    # /ac_card_usage
-    url(r'^ac_card_usage$', server.views.ac_card_usage, name='ac_card_usage')
-]
