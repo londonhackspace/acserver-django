@@ -1,4 +1,6 @@
+from django.db import models
 from django.contrib import admin
+from django.forms.widgets import TextInput
 from django.utils.html import format_html
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.admin import UserAdmin as DJUserAdmin
@@ -54,8 +56,12 @@ class ToolAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'status', 'status_message',
                     'secret', 'inuse', 'inuseby', 'type', 'mqtt_name')
     search_fields = ('name', 'id')
-    list_editable = ('status', 'status_message', 'type', 'mqtt_name')
+    list_editable = ('status', 'status_message',)
     list_filter = ('status', 'type')
+
+    formfield_overrides = {
+        models.TextField: {'widget': TextInput},
+    }
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -88,7 +94,8 @@ class ToolAdmin(admin.ModelAdmin):
 
 class UserAdmin(admin.ModelAdmin):
     fields = (('lhsid', 'name', 'subscribed', 'gladosfile'),)
-    readonly_fields = ('lhsid', 'name', 'subscribed')
+    readonly_fields = ('lhsid',)
+    #readonly_fields = ('lhsid', 'name', 'subscribed')
     list_display = ('id', 'lhsid', 'username_and_profile', 'subscribed',)
     search_fields = ('name', 'id')
     list_filter = ('subscribed',)
