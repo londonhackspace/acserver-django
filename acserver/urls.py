@@ -8,7 +8,7 @@ urlpatterns = [
     # url(r'^$', 'acserver.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
-    url(r'^$', TemplateView.as_view(template_name="root")),
+    url(r'^$', TemplateView.as_view(template_name="index.html")),
     url(r'^admin/', admin.site.urls),
     url(r'^(?P<tool_id>\d+)/status/$', server.views.status),
     # /1/card/12345678
