@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'acserver.wsgi.application'
 DATABASES = {
     'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'acserver',
+            'NAME': '/server/acserver.db',
     }
 }
 
