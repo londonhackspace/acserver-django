@@ -1,6 +1,6 @@
 psycopg2-binary
-django>=2.2.0,<2.3.0
-django-auth-ldap>=1.6.0,<1.7.0
+django
+django-auth-ldap
 django-ldap-sync
 netaddr
 pytz

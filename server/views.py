@@ -1,10 +1,9 @@
-from django.shortcuts import render_to_response, get_object_or_404, render
-from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseNotAllowed, HttpResponseForbidden, JsonResponse
+from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
-from django.utils.decorators import available_attrs
 from django.db.models import Sum
 
 from .models import Tool, Card, User, Permission, ToolUseTime, Log
@@ -42,7 +41,7 @@ def makeResponse(request, status):
 
 def check_secret(func):
     def _decorator(func):
-        @wraps(func, assigned=available_attrs(func))
+        @wraps(func)
         def inner(request, *args, **kwargs):
             try:
                 tool = Tool.objects.get(pk=kwargs['tool_id'])
@@ -88,7 +87,7 @@ def check_secret(func):
 
 def check_ip(func):
     def _decorator(func):
-        @wraps(func, assigned=available_attrs(func))
+        @wraps(func)
         def inner(request, *args, **kwargs):
             ip = get_ip(request)
             if ip == None:
@@ -413,7 +412,7 @@ class HttpResponseUnauthorized(HttpResponse):
 
 def require_api_key(func):
     def _decorator(func):
-        @wraps(func, assigned=available_attrs(func))
+        @wraps(func)
         def inner(request, *args, **kwargs):
             ip = get_ip(request)
             if 'HTTP_API_KEY' not in request.META:
