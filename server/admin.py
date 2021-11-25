@@ -32,7 +32,7 @@ def get_logged_in_user(request):
       # does not have a correspoinding carddb user...
       # since this won't be used on the live site
       # lets just try uid 1
-      user = User.objects.get(id=1)
+      user = DJUser.objects.get(id=1)
       logger.critical('Can\'t find carddb user for django user %d, using user id 1 instead', request.user.id)
   return user
 
