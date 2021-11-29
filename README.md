@@ -1,6 +1,6 @@
 # London Hackspace ACNode Server
 
-## Development Environment
+## Docker Development Environment
 
 Copy `acserver/ldap_local_settings_example.py` to `local_settings.py` remove the DB configuration and run `docker-compose up` for a functional development environment
 
@@ -10,7 +10,7 @@ To create an initial user for testing:
 docker-compose exec server python manage.py createsuperuser
 ```
 
-## Legacy
+## venv Development Environment
 
 Assuming Debian/Ubuntu:
 
