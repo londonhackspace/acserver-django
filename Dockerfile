@@ -11,3 +11,4 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 COPY ./ /server/
 RUN python manage.py collectstatic --noinput
+CMD bash runserver.sh
