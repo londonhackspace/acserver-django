@@ -78,8 +78,8 @@ WSGI_APPLICATION = 'acserver.wsgi.application'
 #
 DATABASES = {
     'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'acserver',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/server/acserver.db',
     }
 }
 
@@ -99,8 +99,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S"
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -121,9 +121,9 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers':['console'],
+            'handlers': ['console'],
             'propagate': True,
-            'level':'INFO',
+            'level': 'INFO',
         },
         'django.server': {
             'handlers': ['console'],
@@ -147,6 +147,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 ACS_API_KEY = 'KEY GOES HERE'
 # only things in this ip range can access the acnode api things.
 ACNODE_IP_RANGE = '0.0.0.0/0'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 try:
     from acserver.local_settings import *

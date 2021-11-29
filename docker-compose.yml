@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  server:
+    build:
+      context: .
+      target: server-build
+    volumes:
+      - ./:/server
+    command: bash runserver.sh
+    restart: on-failure
+    ports:
+      - "8000:8000"
