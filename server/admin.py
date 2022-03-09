@@ -87,6 +87,23 @@ class ToolAdmin(admin.ModelAdmin):
             return super().has_module_permission(request)
         return is_user_a_tool_maintainer(request)
 
+    # allow tool admins access to view, so the autocomplete dropdowns work
+    def has_view_permission(self, request, obj=None):
+        if not request.user.is_authenticated:
+            return super().has_view_permission(request)
+
+        if obj is None:
+            return is_user_a_tool_maintainer(request)
+
+        # is this user a maintainer on the given tool?
+        userpermission = obj.permissions.filter(
+            user_id=get_logged_in_user(request).id)
+        if (userpermission.count() > 0) and (userpermission.get().permission == 2):
+            return True
+
+        # otherwise, defer to the base
+        return super().has_view_permission(request, obj)
+
 
 class UserAdmin(admin.ModelAdmin):
     fields = (('lhsid', 'name', 'subscribed', 'gladosfile'),)
@@ -94,6 +111,10 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'lhsid', 'username_and_profile', 'subscribed',)
     search_fields = ('name', 'id')
     list_filter = ('subscribed',)
+
+    # allow tool admins access to view, so the autocomplete dropdowns work
+    def has_view_permission(self, request, obj=None):
+        return is_user_a_tool_maintainer(request)
 
 
 class CardAdmin(admin.ModelAdmin):
