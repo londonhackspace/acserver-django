@@ -165,13 +165,13 @@ class PermissionAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         definitive, result = self._common_permission_check(request, obj)
         if not definitive:
-            return super().has_delete_permission(self, request, obj)
+            return super().has_delete_permission(request, obj)
         return result
 
     def has_change_permission(self, request, obj=None):
         definitive, result = self._common_permission_check(request, obj)
         if not definitive:
-            return super().has_change_permission(self, request, obj)
+            return super().has_change_permission(request, obj)
         return result
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
