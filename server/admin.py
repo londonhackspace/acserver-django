@@ -141,9 +141,13 @@ class PermissionAdmin(admin.ModelAdmin):
             return super().has_module_permission(request)
         return is_user_a_tool_maintainer(request)
 
-    def has_change_permission(self, request, obj=None):
+    # permission checks get a little repetitive across change and delete, so here we
+    #   break out that common logic
+    # returns a tuple, where the first field indicates if it made a decision, and the second
+    # indicates the result. This allows fallthrough.
+    def _common_permission_check(self, request, obj=None):
         if obj is None:
-            return is_user_a_tool_maintainer(request)
+            return True, is_user_a_tool_maintainer(request)
 
         # is this user a maintainer on the tool this permission refers to?
         userpermission = obj.tool.permissions.filter(
@@ -152,11 +156,23 @@ class PermissionAdmin(admin.ModelAdmin):
             # users cannot edit their own permissions (unless a superuser)
             # this is actually to prevent users locking themselves out
             if obj.user_id == get_logged_in_user(request).id:
-                return request.user.is_superuser
-            return True
+                return True, request.user.is_superuser
+            return True, True
 
         # otherwise, defer to the base
-        return super().has_change_permission(request, obj)
+        return False, False
+
+    def has_delete_permission(self, request, obj=None):
+        definitive, result = self._common_permission_check(request, obj)
+        if not definitive:
+            return super().has_delete_permission(self, request, obj)
+        return result
+
+    def has_change_permission(self, request, obj=None):
+        definitive, result = self._common_permission_check(request, obj)
+        if not definitive:
+            return super().has_change_permission(self, request, obj)
+        return result
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         # allow the user to select only tools they are a maintainer of
@@ -166,6 +182,8 @@ class PermissionAdmin(admin.ModelAdmin):
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    # this is slightly different to the common check, since it does not need the anti-lockout
+    # rule
     def has_view_permission(self, request, obj=None):
         if obj is None:
             return is_user_a_tool_maintainer(request)
