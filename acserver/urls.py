@@ -25,6 +25,9 @@ urlpatterns = [
     # /1/tooluse/1/22222222
     url(r'^(?P<tool_id>\d+)/tooluse/(?P<status>[01])/(?P<card_id>[a-fA-F0-9]+)$',
         server.views.settooluse),
+    # /1/doorevent/1/22222222
+    url(r'^(?P<tool_id>\d+)/doorevent/(?P<status>[01])/(?P<card_id>[a-fA-F0-9]+)$',
+        server.views.logdoorevent),
     # /1/is_tool_in_use
     url(r'^(?P<tool_id>\d+)/is_tool_in_use$', server.views.isinuse),
     # /1/tooluse/time/for/22222222/5

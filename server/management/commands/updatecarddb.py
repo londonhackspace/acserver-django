@@ -159,3 +159,11 @@ class Command(BaseCommand):
                 au.subscribed = False
                 # we don't want to delete them cos of 'on cascade delete' stuffs, and there account might get re-activated
                 au.save()
+
+        # Ensure there is a dummy user with an id of 0
+        try:
+            au = User.objects.get(id = 0)
+            au.name = "<Unknown"
+            au.nickname = "<Unknown>"
+        except:
+            User.objects.create(id = 0, name = "<Unknown>", nickname = "<Unknown>")

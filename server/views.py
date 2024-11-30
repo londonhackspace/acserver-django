@@ -355,6 +355,57 @@ def settooluse(request, tool_id, status, card_id):
     result = {'numeric_status': 1, 'success': 'Tool usage logged'}
     return makeResponse(request, result)
 
+@check_secret
+@check_ip
+@csrf_exempt
+@require_POST
+def logdoorevent(request, tool_id, status, card_id):
+    status = int(status)
+    try:
+        t = Tool.objects.get(pk=tool_id)
+    except ObjectDoesNotExist as e:
+        result = {'numeric_status': -1, 'error': 'Door does not exist'}
+        return makeResponse(request, result)
+    user = None
+    try:
+        c = Card.objects.get(card_id=card_id)
+        user = c.user
+    except ObjectDoesNotExist as e:
+        user = User.objects.get(id = 0)
+        #result = {'numeric_status': 0, 'error': 'Card does not exist'}
+        #return makeResponse(request, result)
+# """     try:
+#         c = Card.objects.get(card_id=card_id)
+#         user = c.user
+#     except ObjectDoesNotExist as e:
+        
+#         user = User.objects.get(id = 0)
+#         if status == 1:
+#             result = {'numeric_status': 0, 'error': 'Card does not exist'}
+#             return makeResponse(request, result)
+# """ 
+    
+    message = None
+    if status == 1:
+        if (user.id != 0):
+            message = "Door Opened"
+            result = {'numeric_status': 1, 'success': 'Tool usage logged'}
+        else:
+            message = "** Door bot reports opening with Unknown Card " + card_id + "**"
+            result = {'numeric_status': 0, 'error': 'Card does not exist'}
+    else:
+        if (user.id != 0):
+            message = "Access Denied"
+        else:
+            message = "Access Denied to Unknown Card " + card_id
+        result = {'numeric_status': 1, 'success': 'Tool usage logged'}
+
+
+    l = Log(tool=t, user=user, message=message)
+    l.save()
+
+    return makeResponse(request, result)
+
 # used by other things?
 
 
