@@ -54,7 +54,8 @@ class Command(BaseCommand):
                 # update ldap login name
                 eu.ldap = u['ldap']
                 # update nick and subscription
-                eu.name = u['nick']
+                eu.nickname = u['nick']
+                eu.name = u['name']
                 eu.subscribed = u['subscribed']
                 # gladosfile should be empty rather than null in this DB
                 if u['gladosfile'] is not None:

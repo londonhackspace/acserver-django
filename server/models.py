@@ -18,13 +18,14 @@ class User(models.Model):
     #
     # which can lead to duplicate names...
     name = models.TextField()
+    nickname = models.TextField()
     subscribed = models.BooleanField(default=False, choices=(
         (True, "Subscribed"), (False, "Not Subscribed")))
     gladosfile = models.TextField(blank=True)
     ldap = models.TextField(unique=True, blank=True, null=True)
 
     def __unicode__(self):
-        o = u"%s : '%s' (%s)" % (self.lhsid(), self.name,
+        o = u"%s : '%s'  : %s" % (self.lhsid(), self.name_and_nickname(),
                                  self.get_subscribed_display(),)
         if hasattr(sys.stdout, "encoding"):
             if not sys.stdout.encoding:
@@ -40,15 +41,21 @@ class User(models.Model):
         return u"HS%05d" % (self.id)
     lhsid.admin_order_field = 'id'
 
+    def name_and_nickname(self):
+        name = self.name
+        if name != self.nickname:
+            name += " (" + self.nickname + ")"
+        return name
+
     def username_and_profile(self):
         if self.id == 0:
             return self.name
-        return format_html('<a href="https://london.hackspace.org.uk/members/profile.php?id={}">{}</a>', self.id, self.name)
+        return format_html('<a href="https://london.hackspace.org.uk/members/profile.php?id={}">{}</a>', self.id, self.name_and_nickname())
     username_and_profile.short_description = 'Name'
     username_and_profile.admin_order_field = 'name'
 
     class Meta:
-        unique_together = (("id", "name"),)
+        unique_together = (("id", "nickname"),)
         verbose_name = 'ACNode User'
         ordering = ['id']
 
@@ -127,7 +134,7 @@ class Permission(models.Model):
     date = models.DateTimeField()
 
     def __unicode__(self):
-        return u"%s is a %s for %s, added by <%s> on %s" % (self.user.name, self.get_permission_display(), self.tool.name, self.addedby, self.date)
+        return u"%s is a %s for %s, added by <%s> on %s" % (self.user.nickname, self.get_permission_display(), self.tool.name, self.addedby, self.date)
 
     def save(self, *args, **kwargs):
         # if we don't have a date field, set it to the
@@ -151,7 +158,7 @@ class Log(models.Model):
     time = models.PositiveIntegerField(default=0)
 
     def __unicode__(self):
-        return u"at %s %s on %s : message: %s" % (self.date, self.user.name, self.tool.name, self.message)
+        return u"at %s %s on %s : message: %s" % (self.date, self.user.nickname, self.tool.name, self.message)
 
     def save(self, *args, **kwargs):
         # if we don't have a date field, set it to the

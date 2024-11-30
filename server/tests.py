@@ -1068,8 +1068,8 @@ class DjangoPermsTests(TestCase):
 
         # the id's need to match up
         for u in (u1, u3, u7):
-            ndju = DJACUser(id=u.id, username=u.name,
-                            email=u.name + "@localhost", password="abc")
+            ndju = DJACUser(id=u.id, username=u.nickname,
+                            email=u.nickname + "@localhost", password="abc")
             ndju.save()
 
     def test_maintainer_is_staff(self):

@@ -14,12 +14,19 @@ logger = logging.getLogger('django.request')
 
 
 def username_and_profile(u):
+    name = ""
     if u.__class__ == Permission or u.__class__ == Card or u.__class__ == Log:
         u = u.user
     return u.username_and_profile()
-
 username_and_profile.short_description = 'Name'
 username_and_profile.admin_order_field = 'user'
+
+def lhs_id(u):
+    if u.__class__ == Permission or u.__class__ == Card or u.__class__ == Log:
+        u = u.user
+    return u.lhsid()
+lhs_id.admin_order_field = 'id'
+
 
 
 def get_logged_in_user(request):
@@ -105,10 +112,10 @@ class ToolAdmin(admin.ModelAdmin):
 
 
 class UserAdmin(admin.ModelAdmin):
-    fields = (('lhsid', 'name', 'subscribed', 'gladosfile'),)
-    readonly_fields = ('lhsid', 'name', 'subscribed')
+    fields = (('lhsid', 'name', 'nickname', 'subscribed', 'gladosfile'),)
+    readonly_fields = ('lhsid', 'name', 'nickname', 'subscribed')
     list_display = ('id', 'lhsid', 'username_and_profile', 'subscribed',)
-    search_fields = ('name', 'id')
+    search_fields = ('name', 'nickname', 'id')
     list_filter = ('subscribed',)
     
     # allow tool admins access to view, so the autocomplete dropdowns work
@@ -130,7 +137,7 @@ class CardAdmin(admin.ModelAdmin):
     fields = (('user', 'card_id'),)
     readonly_fields = ('user', 'card_id')
     list_display = ('card_id', 'lhs_id', username_and_profile)
-    search_fields = ('card_id', 'user__id', 'user__name')
+    search_fields = ('card_id', 'user__id', 'user__name', 'user__nickname')
 
     def lhs_id(self, object):
         return "%s (%s)" % (object.user.lhsid(), object.user.get_subscribed_display())
@@ -139,7 +146,7 @@ class PermissionAdmin(admin.ModelAdmin):
     fields = (('tool', 'user', 'permission'),)
     list_display = ('tool', username_and_profile,
                     'permission', 'addedby', 'date')
-    search_fields = ('user__id','user__name')
+    search_fields = ('user__id', 'user__name', 'user__nickname')
     list_filter = ('tool', 'permission')
     autocomplete_fields = ['tool', 'user']
 
@@ -225,10 +232,10 @@ class PermissionAdmin(admin.ModelAdmin):
 
 class LogAdmin(admin.ModelAdmin):
     fields = (('tool', 'user', 'date', 'message'),)
-    list_display = ('tool', username_and_profile, 'date', 'message')
+    list_display = ('tool', lhs_id, username_and_profile, 'date', 'message')
     list_filter = ('tool',)
     readonly_fields = ('tool', 'user', 'date', 'message')
-    search_fields = ('user__name',)
+    search_fields = ('user__id', 'user__name', 'user__nickname',)
 
     def has_module_permission(self, request):
         if not request.user.is_authenticated:

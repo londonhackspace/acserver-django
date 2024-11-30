@@ -203,7 +203,7 @@ def card(request, tool_id, card_id):
         perm_text = 'Not Subscribed'
     else:
         # For subscribed users, getting the name is useful for doorbot
-        result['user_name'] = c.user.name
+        result['user_name'] = c.user.nickname
         result['user_id'] = c.user.id
 
     logger.info('returning perm %d for %s // %s from %s', result['numeric_status'],
@@ -494,7 +494,7 @@ def get_user_name(request, card_id):
         result = {'error': 'Card does not exist'}
         return HttpResponse(json.dumps(result), content_type='application/json')
 
-    result = {'user_name': c.user.name, 'id': c.user.lhsid(),
+    result = {'user_name': c.user.nickname, 'id': c.user.lhsid(),
               'gladosfile': c.user.gladosfile,
               'subscribed': c.user.subscribed}
     return HttpResponse(json.dumps(result), content_type='application/json')
