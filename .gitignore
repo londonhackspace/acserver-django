@@ -13,3 +13,4 @@ tmp
 venv
 acserver.db
 static/*
+cookie.txt
