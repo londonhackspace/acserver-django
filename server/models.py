@@ -199,7 +199,7 @@ class DJACUser(DJUser):
             # ObjectDoesNotExist if the acnode user does not have an ldap login
             # should never happen with an active user
             return "** No Current LDAP **"
-        return acu.name    
+        return acu.name_and_nickname()    
     
     def lhs_id(self):
         try:
