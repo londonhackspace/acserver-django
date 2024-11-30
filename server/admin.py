@@ -129,13 +129,17 @@ class UserAdmin(admin.ModelAdmin):
 class CardAdmin(admin.ModelAdmin):
     fields = (('user', 'card_id'),)
     readonly_fields = ('user', 'card_id')
-    list_display = ('card_id', username_and_profile,)
+    list_display = ('card_id', 'lhs_id', username_and_profile)
+    search_fields = ('card_id', 'user__id', 'user__name')
 
+    def lhs_id(self, object):
+        return "%s (%s)" % (object.user.lhsid(), object.user.get_subscribed_display())
 
 class PermissionAdmin(admin.ModelAdmin):
     fields = (('tool', 'user', 'permission'),)
     list_display = ('tool', username_and_profile,
                     'permission', 'addedby', 'date')
+    search_fields = ('user__id','user__name')
     list_filter = ('tool', 'permission')
     autocomplete_fields = ['tool', 'user']
 
