@@ -40,8 +40,10 @@ class User(models.Model):
         return u"HS%05d" % (self.id)
     lhsid.admin_order_field = 'id'
 
-    def username_and_profile(u):
-        return format_html('<a href="https://london.hackspace.org.uk/members/profile.php?id={}">{}</a>', u.id, u.name)
+    def username_and_profile(self):
+        if self.id == 0:
+            return self.name
+        return format_html('<a href="https://london.hackspace.org.uk/members/profile.php?id={}">{}</a>', self.id, self.name)
     username_and_profile.short_description = 'Name'
     username_and_profile.admin_order_field = 'name'
 
@@ -170,7 +172,7 @@ class DJACUser(DJUser):
         verbose_name = 'User'
 
     def __getattribute__(self, name):
-        logger = logging.getLogger('django')
+        #logger = logging.getLogger('django')
         parent = super(DJACUser, self).__getattribute__(name)
         if name == 'is_staff':
             try:
@@ -182,3 +184,21 @@ class DJACUser(DJUser):
             if len(acu.permission_set.filter(permission=2).all()) > 0 and acu.subscribed:
                 return True
         return parent
+ 
+    def name(self):
+        try:
+            acu = User.objects.get(ldap=self.username)
+        except Exception as e:
+            # ObjectDoesNotExist if the acnode user does not have an ldap login
+            # should never happen with an active user
+            return "** No Current LDAP **"
+        return acu.name    
+    
+    def lhs_id(self):
+        try:
+            acu = User.objects.get(ldap=self.username)
+        except Exception as e:
+            # ObjectDoesNotExist if the acnode user does not have an ldap login
+            # should never happen with an active user
+            return ""
+        return acu.lhsid()

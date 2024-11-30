@@ -16,8 +16,7 @@ logger = logging.getLogger('django.request')
 def username_and_profile(u):
     if u.__class__ == Permission or u.__class__ == Card or u.__class__ == Log:
         u = u.user
-    return format_html('<a href="https://london.hackspace.org.uk/members/profile.php?id={}">{}</a>', u.id, u.name)
-
+    return u.username_and_profile()
 
 username_and_profile.short_description = 'Name'
 username_and_profile.admin_order_field = 'user'
@@ -111,10 +110,20 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ('id', 'lhsid', 'username_and_profile', 'subscribed',)
     search_fields = ('name', 'id')
     list_filter = ('subscribed',)
-
+    
     # allow tool admins access to view, so the autocomplete dropdowns work
     def has_view_permission(self, request, obj=None):
         return is_user_a_tool_maintainer(request)
+
+    def has_change_permission(self, request, obj=None):
+        if obj is not None and obj.id == 0:
+            return False
+        return super().has_change_permission(request,obj)
+    
+    def has_delete_permission(self, request, obj=None):
+        if obj is not None and obj.id == 0:
+            return False
+        return super().has_delete_permission(request,obj)
 
 
 class CardAdmin(admin.ModelAdmin):
@@ -244,11 +253,15 @@ class LogAdmin(admin.ModelAdmin):
         # otherwise return tools where this user is a maintainer
         return qs.filter(tool__permissions__permission=2, tool__permissions__user_id=get_logged_in_user(request).id)
 
+class DJACUserAdmin(DJUserAdmin):
+    list_display = ('username', 'name', 'lhs_id', 'email', 'is_staff')
+    search_fields = ('username', 'email')
+
 
 # we don't want to use the Django User object in the admin
 # substitute it with our own
 admin.site.unregister(DJUser)
-admin.site.register(DJACUser, DJUserAdmin)
+admin.site.register(DJACUser, DJACUserAdmin)
 
 admin.site.register(Tool, ToolAdmin)
 admin.site.register(User, UserAdmin)
