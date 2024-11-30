@@ -21,6 +21,7 @@ class User(models.Model):
     subscribed = models.BooleanField(default=False, choices=(
         (True, "Subscribed"), (False, "Not Subscribed")))
     gladosfile = models.TextField(blank=True)
+    ldap = models.TextField(unique=True, blank=True, null=True)
 
     def __unicode__(self):
         o = u"%s : '%s' (%s)" % (self.lhsid(), self.name,
@@ -173,13 +174,11 @@ class DJACUser(DJUser):
         parent = super(DJACUser, self).__getattribute__(name)
         if name == 'is_staff':
             try:
-                acu = User.objects.get(pk=self.id)
+                acu = User.objects.get(ldap=self.username)
             except Exception as e:
-                # ObjectDoesNotExist if it's not an acnode user.
-                # should never happen on the live server(?)
-                logger.critical(
-                    'exception in DJACUser __getattribute__ for %s / %s : %s', str(name), str(self.id), e)
+                # ObjectDoesNotExist if the acnode user does not have an ldap login
+                # should never happen with an active user
                 return parent
-            if len(acu.permission_set.filter(permission=2).all()) > 0:
+            if len(acu.permission_set.filter(permission=2).all()) > 0 and acu.subscribed:
                 return True
-        return object.__getattribute__(self, name)
+        return parent

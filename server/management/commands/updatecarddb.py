@@ -51,6 +51,8 @@ class Command(BaseCommand):
             except ObjectDoesNotExist:
                 pass
             if eu:
+                # update ldap login name
+                eu.ldap = u['ldap']
                 # update nick and subscription
                 eu.name = u['nick']
                 eu.subscribed = u['subscribed']
